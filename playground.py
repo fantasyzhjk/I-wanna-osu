@@ -471,11 +471,6 @@ class Playground(object):
             self.player.speed[1] += gravity
             self.update()
             self.draw()
-            # for barrage in self.barrages.sprites():
-            #     pygame.sprite.collide_mask(self.player, barrage)
-            #     barrage.kill()
-            #     self.health -= 40
-            #     self.combo = 0
             if pygame.sprite.spritecollide(self.player, self.barrages, True):
                 if self.combo > 50:
                     self.health -= 60
