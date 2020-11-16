@@ -2,20 +2,7 @@ import pygame
 import playground as pg
 import menu
 import sys
-
-
-class Settings:
-    clock_tick = 90
-    window_width = 1024
-    window_height = 768
-
-
-class Colours:
-    black = (0, 0, 0)
-    white = (255, 255, 255)
-
-
-###########################
+from config import *
 
 
 class Main(object):
@@ -38,11 +25,12 @@ class Main(object):
     def loop(self):
         while self.intro:
             self.menu.run()
+            self.clock.tick(self.clock_tick)
             pass
 
         while True:
-            myFont = pygame.font.Font('./src/sarasa-mono-sc-regular.ttf', 55)
-            otherFont = pygame.font.Font('./src/sarasa-mono-sc-regular.ttf', 30)
+            myFont = pygame.font.Font(Settings.font, 55)
+            otherFont = pygame.font.Font(Settings.font, 30)
             if self.game_end:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -85,11 +73,12 @@ class Main(object):
                     self.intro = True
                     self.stat = 0
                     self.loop()
+                self.clock.tick(self.clock_tick)
             else:
                 self.start_game()
 
     def start_game(self):
-        song = self.menu.beatmapdiff
+        song = self.menu.beatmap_diff
         song_path = self.menu.song_path
         self.playground = pg.Playground(self, song, song_path)
         while not self.game_end:

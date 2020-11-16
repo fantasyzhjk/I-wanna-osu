@@ -1,4 +1,7 @@
+import os
 import re
+
+from config import *
 
 SECTION_TYPES = [
     'General',
@@ -11,6 +14,51 @@ SECTION_TYPES = [
     'HitObjects'
 ]
 SLIDER_TYPES = ['C', 'L', 'P', 'B']
+
+
+def getSongs():
+    songs_path = Settings.songs_path
+    osu_songs = os.listdir(songs_path)
+    all_beatmaps = []
+    lastBeatmap = ''
+    i = -1
+    for song in osu_songs:
+        path = os.path.join(songs_path, song)
+        if os.path.isdir(path):
+            for file in os.listdir(path):
+                if file.endswith(".osu"):
+                    song_path = os.path.join(path, file)
+                    if song != lastBeatmap:
+                        i += 1
+                        lastBeatmap = song
+                        all_beatmaps.append([])
+                        all_beatmaps[i].append({'song_path': path})
+                        print("Reading {}".format(song))
+                    try:
+                        songInfo = parse(song_path)
+                        all_beatmaps[i].append(songInfo)
+                    except:
+                        print("Could not read {}".format(song))
+    return all_beatmaps
+
+
+def parse(osu_beatmap_path: str):
+    try:
+        file = open(osu_beatmap_path, 'r+', encoding="utf8").readlines()
+        current_sector = None
+        beatmap_dict = {}
+        for line in file:
+            if line == '' or line == '\n':
+                continue
+            callback = check_for_header(line)
+            if callback is not None:
+                current_sector = callback
+            if current_sector is not None:
+                line = line.strip('\n')
+                parse_line(line, current_sector, beatmap_dict)
+        return beatmap_dict
+    except:
+        return None
 
 
 def check_for_header(line: str):
@@ -99,21 +147,3 @@ def parse_line(line: str, current_sector: str, beatmap_dict: dict):
         value = item[1].replace('\n', '')
         key = "_".join(re.sub(r"([A-Z])", r" \1", item[0]).lower().split())
         beatmap_dict[current_sector][key] = value
-
-
-def parse(osu_beatmap_path: str):
-    try:
-        file = open(osu_beatmap_path, 'r+', encoding="utf8").readlines()
-        current_sector = None
-        beatmap_dict = {}
-        for line in file:
-            if line == '' or line == '\n':
-                continue
-            callback = check_for_header(line)
-            if callback is not None:
-                current_sector = callback
-            if current_sector is not None:
-                parse_line(line, current_sector, beatmap_dict)
-        return beatmap_dict
-    except:
-        return None

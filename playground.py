@@ -1,6 +1,7 @@
 import sys
 import os
 import pygame
+from config import *
 
 delta = {
     pygame.K_UP: (0, -16),
@@ -157,7 +158,7 @@ class Light(pygame.sprite.Sprite):
     def __init__(self, screen, x, y):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
-        self.image = pygame.image.load('./src/lighting.png')
+        self.image = pygame.image.frombuffer(self.screen.light_image, (184, 184), 'RGBA')
         self.rect = self.image.get_rect(x=x - 92, y=y - 92)
         self.alpha = 255
 
@@ -174,12 +175,11 @@ class Light(pygame.sprite.Sprite):
 class Barrage(pygame.sprite.Sprite):
     def __init__(self, screen, x=0, y=0):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load('./src/bullet.png')
-        self.image = pygame.transform.scale(self.image, (24, 24))
+        self.screen = screen
+        self.image = self.screen.barrage_image
         # self.image = pygame.Surface([14, 14])
         # self.image = self.image.convert()
         # self.image.fill((255, 23, 140))
-        self.screen = screen
         # self.rect = self.image.get_rect(x=random.randint(0, screen.width), y=random.randint(0, screen.height / 3))
         self.rect = self.image.get_rect(x=x, y=y)
         self.rect.width, self.rect.height = 12, 12
@@ -194,7 +194,7 @@ class Barrage(pygame.sprite.Sprite):
 
         if self.rect.left < 0 or self.rect.right > self.width or self.rect.bottom > self.height:
             self.screen.combo += 1
-            self.screen.points += int(100 * (self.screen.combo / 25))  # 算分
+            self.screen.points += int(200 * (self.screen.combo / 25))  # 算分
             self.kill()
             if self.screen.health < 100:
                 self.screen.health += 1
@@ -212,7 +212,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, screen):
         pygame.sprite.Sprite.__init__(self)
         self.direction = 0
-        self.image = pygame.image.load('./src/player.png')
+        self.image = pygame.image.load('./src/player.png').convert_alpha()
         # self.image = pygame.Surface([25, 25])
         # self.image = self.image.convert()
         # self.image.fill((255, 255, 255))
@@ -278,7 +278,7 @@ class HealthBar(object):
 class Score(object):
     def __init__(self, screen):
         self.screen = screen
-        self.Font = pygame.font.Font('./src/sarasa-mono-sc-regular.ttf', 60)
+        self.Font = pygame.font.Font(Settings.font, 60)
         # self.background = pygame.image.load("src/background.jpg")
 
     def draw(self):
@@ -291,7 +291,7 @@ class Combo(object):
     def __init__(self, screen):
         self.screen = screen
         self.combo = 0
-        self.Font = pygame.font.Font('./src/sarasa-mono-sc-regular.ttf', 60)
+        self.Font = pygame.font.Font(Settings.font, 60)
         # self.background = pygame.image.load("src/background.jpg")
 
     def draw(self):
@@ -306,7 +306,7 @@ class Combo(object):
 class Time(object):
     def __init__(self, screen):
         self.screen = screen
-        self.Font = pygame.font.Font('./src/sarasa-mono-sc-regular.ttf', 30)
+        self.Font = pygame.font.Font(Settings.font, 30)
         # self.background = pygame.image.load("src/background.jpg")
 
     def draw(self):
@@ -326,11 +326,15 @@ class Time(object):
 class GameBackground(object):
     def __init__(self, screen, img):
         self.screen = screen
-        self.background = pygame.image.load(img)
         self.alphared = 0
         self.alphablack = 180
         # self.background = pygame.transform.scale(self.background, (self.screen.width, self.screen.height))
-        self.background = pygame.transform.scale(self.background, (1024, 600))
+        try:
+            self.background = pygame.image.load(img).convert()
+            self.background = pygame.transform.smoothscale(self.background, (1024, 576))
+        except FileNotFoundError:
+            self.background = pygame.Surface(self.screen.scene.get_size()).convert()
+            self.background.fill((0, 0, 0))
         self.backgroundback = pygame.Surface(self.screen.scene.get_size()).convert()
         self.backgroundback.fill((0, 0, 0))
         self.backgroundback.set_alpha(180)
@@ -346,7 +350,7 @@ class GameBackground(object):
             self.alphablack += 1
 
     def draw(self):
-        self.screen.scene.blit(self.background, (0, 84))
+        self.screen.scene.blit(self.background, (0, 96))
         self.screen.scene.blit(self.backgroundback, (0, 0))
         self.screen.scene.blit(self.backgroundred, (0, 0))
 
@@ -357,10 +361,9 @@ class Playground(object):
         (self.width, self.height) = (main.width, main.height)
         self.scene = main.scene
         self.beatmap = song
-        pygame.mixer.music.load(os.path.join(song_path, self.beatmap['General']['audio_filename'].strip()))
-        pygame.mixer.music.play()
+        self.light_image = pygame.image.tostring(pygame.image.load('./src/lighting.png').convert_alpha(), 'RGBA')
+        self.barrage_image = pygame.transform.scale(pygame.image.load('./src/bullet.png').convert_alpha(), (24, 24))
         # self.start_time = pygame.time.get_ticks()
-        self.music_pos = pygame.mixer.music.get_pos()
         self.player = Player(self)
         self.gb = GenerateBarrages(self)
         self.barrages = pygame.sprite.Group()
@@ -384,6 +387,10 @@ class Playground(object):
         self.jump_state = 2
         self.friction = 1
         self.barrage_speed = 1.3
+        self.miss = 0
+        pygame.mixer.music.load(os.path.join(song_path, self.beatmap['General']['audio_filename'].strip()))
+        pygame.mixer.music.play()
+        self.music_pos = pygame.mixer.music.get_pos()
 
     def draw(self):
         self.background.draw()
@@ -415,7 +422,7 @@ class Playground(object):
                 self.health += 0.2
             if self.health <= 0:
                 self.main.game_end = True
-            elif self.music_pos == -1:
+            elif self.music_pos == -1 and len(self.barrages) == 0 and len(self.barragesGrav) == 0:
                 self.main.game_end = True
                 self.main.stat = 1
             else:
@@ -478,6 +485,7 @@ class Playground(object):
                 else:
                     self.health -= 30
                     self.background.alphared = 120
+                self.miss += 1
                 self.combo = 0
             if pygame.sprite.spritecollide(self.player, self.barragesGrav, True):
                 if self.combo > 50:
@@ -486,4 +494,5 @@ class Playground(object):
                 else:
                     self.health -= 30
                     self.background.alphared = 120
+                self.miss += 1
                 self.combo = 0

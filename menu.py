@@ -2,7 +2,7 @@ import os
 import beapmap_reader
 import pygame
 import sys
-from main import Colours
+from config import *
 
 
 class Background(object):
@@ -15,7 +15,7 @@ class Background(object):
 
     def draw(self):
         self.screen.scene.blit(self.backgroundback, (0, 0))
-        self.screen.scene.blit(self.background, (0, 84))
+        self.screen.scene.blit(self.background, (0, 96))
 
 
 class Menu:
@@ -23,70 +23,66 @@ class Menu:
         (self.width, self.height) = (main.width, main.height)
         self.main = main
         self.scene = main.scene
-        self.all_beatmaps = self.getSongs()
+        self.beatmap = []
+        self.beatmap_diff = {}
+        self.song_path = ''
+        self.all_beatmaps = beapmap_reader.getSongs()
         self.background = Background(self)
         self.song = 0
         self.song_diff = 0
-        self.myFont = pygame.font.Font('./src/sarasa-mono-sc-regular.ttf', 45)
-        self.otherFont = pygame.font.Font('./src/sarasa-mono-sc-regular.ttf', 25)
-        self.smallFont = pygame.font.Font('./src/sarasa-mono-sc-regular.ttf', 20)
+        self.myFont = pygame.font.Font(Settings.font, 45)
+        self.otherFont = pygame.font.Font(Settings.font, 25)
+        self.smallFont = pygame.font.Font(Settings.font, 20)
         self.up_text = self.otherFont.render("△", True, Colours.white)
         self.down_text = self.otherFont.render("▽", True, Colours.white)
         title = 'Safetyisland'
         self.SurfaceFont = self.myFont.render(title, True, Colours.white)
+        self.SurfaceFont_Y = 15
         version = 'You have no Beatmaps'
         self.SurfaceFont2 = self.otherFont.render(version, True, Colours.white)
         if self.all_beatmaps:
             self.setSong()
 
-    def getSongs(self):
-        songs_path = "./Songs"
-        osu_songs = os.listdir(songs_path)
-        all_beatmaps = []
-        lastBeatmap = ''
-        i = -1
-        for song in osu_songs:
-            path = os.path.join(songs_path, song)
-            if os.path.isdir(path):
-                for file in os.listdir(path):
-                    if file.endswith(".osu"):
-                        song_path = os.path.join(path, file)
-                        if song != lastBeatmap:
-                            i += 1
-                            lastBeatmap = song
-                            all_beatmaps.append([])
-                            all_beatmaps[i].append({'song_path': path})
-                            print("Reading {}".format(song))
-                        try:
-                            songInfo = beapmap_reader.parse(song_path)
-                            all_beatmaps[i].append(songInfo)
-                        except:
-                            print("Could not read {}".format(song))
-        return all_beatmaps
-
     def setSong(self):
         self.beatmap = self.all_beatmaps[self.song]
-        self.setDiff()
         self.song_path = self.beatmap[0]['song_path']
-        img_file = os.path.join(self.song_path, self.beatmapdiff['Events'][0]['Backgroundimg'].strip())
-        backgroundimg = pygame.image.load(img_file)
-        backgroundimg = pygame.transform.scale(backgroundimg, (1024, 600))
-        self.background.background = backgroundimg
-        pygame.mixer.music.load(os.path.join(self.song_path, self.beatmapdiff['General']['audio_filename'].strip()))
+        self.setDiff()
+        pygame.mixer.music.load(os.path.join(self.song_path, self.beatmap_diff['General']['audio_filename'].strip()))
         pygame.mixer.music.play()
-        title = self.beatmapdiff['Metadata']['artist_unicode'] + ' - ' + self.beatmapdiff['Metadata']['title_unicode']
+        title = self.beatmap_diff['Metadata']['artist'] + ' - ' + self.beatmap_diff['Metadata']['title']
+        if 42 >= len(title) > 36:
+            self.myFont = pygame.font.Font(Settings.font, 38)
+            self.SurfaceFont_Y = 20
+        elif 55 >= len(title) > 42:
+            self.myFont = pygame.font.Font(Settings.font, 31)
+            self.SurfaceFont_Y = 25
+        elif len(title) > 55:
+            self.myFont = pygame.font.Font(Settings.font, 24)
+            self.SurfaceFont_Y = 30
+        else:
+            self.myFont = pygame.font.Font(Settings.font, 45)
+            self.SurfaceFont_Y = 15
         self.SurfaceFont = self.myFont.render(title, True, Colours.white)
 
     def setDiff(self):
-        self.beatmapdiff = self.beatmap[self.song_diff + 1]
-        version = "(" + self.beatmapdiff['Metadata']['version'] + ') - Press Space to Start'
+        self.beatmap_diff = self.beatmap[self.song_diff + 1]
+        img_file = os.path.join(self.song_path, self.beatmap_diff['Events'][0]['Backgroundimg'].strip())
+        try:
+            backgroundimg = pygame.image.load(img_file).convert()
+            backgroundimg = pygame.transform.smoothscale(backgroundimg, (1024, 576))
+            self.background.background = backgroundimg
+        except FileNotFoundError:
+            backgroundback = pygame.Surface(self.scene.get_size()).convert()
+            backgroundback.fill((0, 0, 0))
+            self.background.background = backgroundback
+        version = "(" + self.beatmap_diff['Metadata']['version'] + ') - Press Space to Start'
         self.SurfaceFont2 = self.otherFont.render(version, True, Colours.white)
 
     def draw(self):
-        self.scene.blit(self.SurfaceFont2, (30, self.height - 60))
-        self.scene.blit(self.SurfaceFont, (30, 15))
-        self.scene.blit(self.up_text, (self.width - 100, self.height - 70))
-        self.scene.blit(self.down_text, (self.width - 100, self.height - 50))
+        self.scene.blit(self.SurfaceFont2, (30, self.height - 65))
+        self.scene.blit(self.SurfaceFont, (30, self.SurfaceFont_Y))
+        self.scene.blit(self.up_text, (self.width - 80, self.height - 75))
+        self.scene.blit(self.down_text, (self.width - 80, self.height - 55))
         pygame.display.flip()
         self.background.draw()
 
@@ -114,7 +110,7 @@ class Menu:
                         self.song_diff -= 1
                         self.setDiff()
 
-                if event.key == pygame.K_SPACE:
+                if event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
                     self.main.intro = False
 
         self.draw()
