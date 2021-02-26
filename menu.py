@@ -1,16 +1,17 @@
 import os
-import beapmap_reader
 import pygame
 import sys
-from config import *
+from config import Settings, Colours
 
 
 class Background(object):
     def __init__(self, screen):
         self.screen = screen
-        self.background = pygame.Surface(self.screen.scene.get_size()).convert()
+        self.background = pygame.Surface(
+            self.screen.scene.get_size()).convert()
         self.background.fill((0, 0, 0))
-        self.backgroundback = pygame.Surface(self.screen.scene.get_size()).convert()
+        self.backgroundback = pygame.Surface(
+            self.screen.scene.get_size()).convert()
         self.backgroundback.fill((0, 0, 0))
 
     def draw(self):
@@ -18,15 +19,35 @@ class Background(object):
         self.screen.scene.blit(self.background, (0, 96))
 
 
-class Menu:
+class LoadingScreen:
     def __init__(self, main):
+        (self.width, self.height) = (main.width, main.height)
+        self.main = main
+        self.scene = main.scene
+        self.background = Background(self)
+        self.clock = pygame.time.Clock()
+        self.myFont = pygame.font.Font(Settings.font, 45)
+        self.SurfaceFont = self.myFont.render("Loading....", True, Colours.white)
+
+    def draw(self):
+        self.scene.blit(self.SurfaceFont, (30, 15))
+        pygame.display.flip()
+        self.background.draw()
+
+    def run(self):
+        self.draw()
+        self.clock.tick(Settings.clock_tick)
+
+
+class Menu:
+    def __init__(self, main, all_beatmaps):
         (self.width, self.height) = (main.width, main.height)
         self.main = main
         self.scene = main.scene
         self.beatmap = []
         self.beatmap_diff = {}
         self.song_path = ''
-        self.all_beatmaps = beapmap_reader.getSongs()
+        self.all_beatmaps = all_beatmaps
         self.background = Background(self)
         self.song = 0
         self.song_diff = 0
@@ -47,9 +68,13 @@ class Menu:
         self.beatmap = self.all_beatmaps[self.song]
         self.song_path = self.beatmap[0]['song_path']
         self.setDiff()
-        pygame.mixer.music.load(os.path.join(self.song_path, self.beatmap_diff['General']['audio_filename'].strip()))
+        pygame.mixer.music.load(
+            os.path.join(
+                self.song_path,
+                self.beatmap_diff['General']['audio_filename'].strip()))
         pygame.mixer.music.play()
-        title = self.beatmap_diff['Metadata']['artist'] + ' - ' + self.beatmap_diff['Metadata']['title']
+        title = self.beatmap_diff['Metadata'][
+            'artist'] + ' - ' + self.beatmap_diff['Metadata']['title']
         if 42 >= len(title) > 36:
             self.myFont = pygame.font.Font(Settings.font, 38)
             self.SurfaceFont_Y = 20
@@ -66,17 +91,24 @@ class Menu:
 
     def setDiff(self):
         self.beatmap_diff = self.beatmap[self.song_diff + 1]
-        img_file = os.path.join(self.song_path, self.beatmap_diff['Events'][0]['Backgroundimg'].strip())
         try:
+            img_file = os.path.join(
+                self.song_path,
+                self.beatmap_diff['Events'][0]['Backgroundimg'].strip())
             backgroundimg = pygame.image.load(img_file).convert()
-            backgroundimg = pygame.transform.smoothscale(backgroundimg, (1024, 576))
+            backgroundimg = pygame.transform.smoothscale(
+                backgroundimg, (1024, 576))
             self.background.background = backgroundimg
+            version = "(" + self.beatmap_diff['Metadata'][
+                'version'] + ') - Press Space to Start'
+            self.SurfaceFont2 = self.otherFont.render(version, True, Colours.white)
+        except KeyError:
+            self.song_diff += 1
+            self.setDiff()
         except FileNotFoundError:
             backgroundback = pygame.Surface(self.scene.get_size()).convert()
             backgroundback.fill((0, 0, 0))
             self.background.background = backgroundback
-        version = "(" + self.beatmap_diff['Metadata']['version'] + ') - Press Space to Start'
-        self.SurfaceFont2 = self.otherFont.render(version, True, Colours.white)
 
     def draw(self):
         self.scene.blit(self.SurfaceFont2, (30, self.height - 65))
@@ -88,7 +120,9 @@ class Menu:
 
     def run(self):
         for event in pygame.event.get():
-            if (event.type == pygame.QUIT) or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+            if (event.type
+                    == pygame.QUIT) or (event.type == pygame.KEYDOWN
+                                        and event.key == pygame.K_ESCAPE):
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:

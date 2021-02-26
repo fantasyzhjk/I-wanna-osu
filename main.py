@@ -1,26 +1,36 @@
 import pygame
 import playground as pg
+import beapmap_reader
 import menu
 import sys
-from config import *
+from threading import Thread
+from config import Settings
 
 
 class Main(object):
     def __init__(self):
         pygame.init()
         pygame.display.set_caption('Safetyisland')
-        pygame.mixer.music.set_volume(0.7)
-        pygame.mixer.music.set_endevent(pygame.USEREVENT + 1)
+        pygame.mixer.music.set_volume(Settings.volume)
         icon = pygame.image.load('./src/player.png')
         pygame.display.set_icon(icon)  # 可以填img
-        size = (self.width, self.height) = (Settings.window_width, Settings.window_height)
-        self.scene = pygame.display.set_mode(size, pygame.HWSURFACE | pygame.DOUBLEBUF)
+        size = (self.width, self.height) = (Settings.window_width,
+                                            Settings.window_height)
+        self.scene = pygame.display.set_mode(
+            size, pygame.HWSURFACE | pygame.DOUBLEBUF)
         self.clock = pygame.time.Clock()
         self.clock_tick = Settings.clock_tick
         self.intro = True
         self.stat = 0
         self.game_end = False
-        self.menu = menu.Menu(self)
+        # 加载铺面
+        self.loadingScreen = menu.LoadingScreen(self)
+        loadingS = Thread(target=self.loadingScreen.run)
+        loadingS.setDaemon(True)  # 必须在t.start()之前设置
+        loadingS.start()
+        all_beatmaps = beapmap_reader.getSongs(Settings.songs_path)
+        loadingS.join()
+        self.menu = menu.Menu(self, all_beatmaps)
 
     def loop(self):
         while self.intro:
@@ -43,11 +53,16 @@ class Main(object):
                         self.loop()
                 if self.stat == 0:
                     pygame.mixer.music.fadeout(500)
-                    faildtext = myFont.render("You Failed! Score:" + str(self.playground.points), True,
-                                              (255, 255, 255))
-                    max_combo = otherFont.render("MaxCombo:" + str(self.playground.max_combo), True, (255, 255, 255))
-                    faildtext1 = otherFont.render("Press Esc to Menu", True, (255, 255, 255))
-                    backgroundback = pygame.Surface(self.scene.get_size()).convert()
+                    faildtext = myFont.render(
+                        "You Failed! Score:" + str(self.playground.points),
+                        True, (255, 255, 255))
+                    max_combo = otherFont.render(
+                        "MaxCombo:" + str(self.playground.max_combo), True,
+                        (255, 255, 255))
+                    faildtext1 = otherFont.render("Press Esc to Menu", True,
+                                                  (255, 255, 255))
+                    backgroundback = pygame.Surface(
+                        self.scene.get_size()).convert()
                     backgroundback.fill((0, 0, 0))
                     backgroundback.set_alpha(200)
                     self.scene.blit(backgroundback, (0, 0))
@@ -56,10 +71,16 @@ class Main(object):
                     self.scene.blit(faildtext1, (150, 180))
                     pygame.display.update()
                 elif self.stat == 1:
-                    wintext = myFont.render("You Win! Score:" + str(self.playground.points), True, (255, 255, 255))
-                    max_combo = otherFont.render("MaxCombo:" + str(self.playground.max_combo), True, (255, 255, 255))
-                    wintext1 = otherFont.render("Press Esc to Menu", True, (255, 255, 255))
-                    backgroundback = pygame.Surface(self.scene.get_size()).convert()
+                    wintext = myFont.render(
+                        "You Win! Score:" + str(self.playground.points), True,
+                        (255, 255, 255))
+                    max_combo = otherFont.render(
+                        "MaxCombo:" + str(self.playground.max_combo), True,
+                        (255, 255, 255))
+                    wintext1 = otherFont.render("Press Esc to Menu", True,
+                                                (255, 255, 255))
+                    backgroundback = pygame.Surface(
+                        self.scene.get_size()).convert()
                     backgroundback.fill((0, 0, 0))
                     backgroundback.set_alpha(200)
                     self.scene.blit(backgroundback, (0, 0))

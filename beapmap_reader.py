@@ -1,23 +1,18 @@
 import os
 import re
 
-from config import *
-
+# 铺面参数类型
 SECTION_TYPES = [
-    'General',
-    'Editor',
-    'Metadata',
-    'Difficulty',
-    'Events',
-    'TimingPoints',
-    'Colours',
-    'HitObjects'
+    'General', 'Editor', 'Metadata', 'Difficulty', 'Events', 'TimingPoints',
+    'Colours', 'HitObjects'
 ]
+
+# 滑条类型
 SLIDER_TYPES = ['C', 'L', 'P', 'B']
 
 
-def getSongs():
-    songs_path = Settings.songs_path
+# 读取songs文件夹
+def getSongs(songs_path):
     osu_songs = os.listdir(songs_path)
     all_beatmaps = []
     lastBeatmap = ''
@@ -33,15 +28,16 @@ def getSongs():
                         lastBeatmap = song
                         all_beatmaps.append([])
                         all_beatmaps[i].append({'song_path': path})
-                        print("Reading {}".format(song))
+                        print("正在读取 {}".format(song))
                     try:
                         songInfo = parse(song_path)
                         all_beatmaps[i].append(songInfo)
-                    except:
-                        print("Could not read {}".format(song))
+                    except Exception:
+                        print("{} 读取失败".format(song))
     return all_beatmaps
 
 
+# 单文件解析
 def parse(osu_beatmap_path: str):
     try:
         file = open(osu_beatmap_path, 'r+', encoding="utf8").readlines()
@@ -57,7 +53,7 @@ def parse(osu_beatmap_path: str):
                 line = line.strip('\n')
                 parse_line(line, current_sector, beatmap_dict)
         return beatmap_dict
-    except:
+    except Exception:
         return None
 
 
@@ -68,6 +64,7 @@ def check_for_header(line: str):
     return None
 
 
+# 解析铺面
 def parse_hit_objects(line: str, sector: str, beatmap_dict: dict):
     item = line.split(',')
     point = {
@@ -84,17 +81,20 @@ def parse_hit_objects(line: str, sector: str, beatmap_dict: dict):
             try:
                 ct_cp = item[5].split("|")
                 point['curve_type'] = ct_cp[0]
-                point['curve_points'] = tuple(
-                    [{'x': params.split(':')[0], 'y': params.split(':')[1]} for params in ct_cp[1:]])
+                point['curve_points'] = tuple([{
+                    'x': params.split(':')[0],
+                    'y': params.split(':')[1]
+                } for params in ct_cp[1:]])
                 point['slides'] = item[6]
                 point['length'] = item[7]
                 point['edge_sounds'] = item[8]
                 point['edge_sets'] = item[9]
-            except:
+            except Exception:
                 pass
     beatmap_dict[sector].append(point)
 
 
+# 解析事件（背景图） todo：storyboard
 def parse_events(line: str, sector: str, beatmap_dict: dict):
     item = line.split(',')
     if item[0] == '0' and item[1] == '0':
@@ -104,6 +104,7 @@ def parse_events(line: str, sector: str, beatmap_dict: dict):
         beatmap_dict[sector].append(point)
 
 
+# 解析timing结构
 def parse_timing_objects(line: str, sector: str, beatmap_dict: dict):
     item = line.split(',')
     point = {
@@ -119,6 +120,7 @@ def parse_timing_objects(line: str, sector: str, beatmap_dict: dict):
     beatmap_dict[sector].append(point)
 
 
+# 单行解析
 def parse_line(line: str, current_sector: str, beatmap_dict: dict):
     if current_sector == "TimingPoints":
         if current_sector not in beatmap_dict:
