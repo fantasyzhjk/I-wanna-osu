@@ -57,7 +57,7 @@ class Menu:
         self.smallFont = pygame.font.Font(Settings.font, 20)
         self.up_text = self.otherFont.render("△", True, Colours.white)
         self.down_text = self.otherFont.render("▽", True, Colours.white)
-        title = 'Safetyisland'
+        title = 'I wanna osu'
         self.SurfaceFont = self.myFont.render(title, True, Colours.white)
         self.SurfaceFont_Y = 15
         version = 'You have no Beatmaps'
@@ -130,6 +130,13 @@ class Menu:
                     == pygame.QUIT) or (event.type == pygame.KEYDOWN
                                         and event.key == pygame.K_ESCAPE):
                 sys.exit()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
+                if self.main.noFail is True:
+                    self.main.noFail = False
+                    pygame.display.set_caption('I wanna osu')
+                else:
+                    self.main.noFail = True
+                    pygame.display.set_caption('[NOFAIL] I wanna osu')
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     if self.song > 0:

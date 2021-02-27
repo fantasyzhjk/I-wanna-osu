@@ -10,7 +10,7 @@ from config import Settings
 class Main(object):
     def __init__(self):
         pygame.init()
-        pygame.display.set_caption('Safetyisland')
+        pygame.display.set_caption('I wanna osu')
         pygame.mixer.music.set_volume(Settings.volume)
         icon = pygame.image.load('./src/player.png')
         pygame.display.set_icon(icon)  # 可以填img
@@ -21,8 +21,9 @@ class Main(object):
         self.clock = pygame.time.Clock()
         self.clock_tick = Settings.clock_tick
         self.intro = True
-        self.stat = 0
         self.game_end = False
+        self.stat = 0
+        self.noFail = False
         # 加载铺面
         self.loadingScreen = menu.LoadingScreen(self)
         loadingS = Thread(target=self.loadingScreen.run)
@@ -46,7 +47,10 @@ class Main(object):
                     if event.type == pygame.QUIT:
                         sys.exit()
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                        pygame.display.set_caption('Safetyisland')
+                        if self.main.noFail is True:
+                            pygame.display.set_caption('I wanna osu')
+                        else:
+                            pygame.display.set_caption('[NOFAIL] I wanna osu')
                         self.game_end = False
                         self.intro = True
                         self.stat = 0

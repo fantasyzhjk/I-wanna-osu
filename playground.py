@@ -630,21 +630,22 @@ class Playground(object):
             self.update()
             self.draw()
             if pygame.sprite.spritecollide(self.player, self.barrages, True):
-                if self.combo > 150:
-                    self.health -= self.healthdiff * 1.3
-                    self.background.alphared = 90
-                else:
-                    self.health -= self.healthdiff
-                    self.background.alphared = 90
+                if self.main.noFail is not True:
+                    if self.combo > 150:
+                        self.health -= self.healthdiff * 1.3
+                        self.background.alphared = 90
+                    else:
+                        self.health -= self.healthdiff
+                        self.background.alphared = 90
                 self.miss += 1
                 self.combo = 0
-            if pygame.sprite.spritecollide(self.player, self.barragesGrav,
-                                           True):
-                if self.combo > 150:
-                    self.health -= self.healthdiff * 1.3
-                    self.background.alphared = 90
-                else:
-                    self.health -= self.healthdiff
-                    self.background.alphared = 90
+            if pygame.sprite.spritecollide(self.player, self.barragesGrav, True):
+                if self.main.noFail is not True:
+                    if self.combo > 150:
+                        self.health -= self.healthdiff * 1.3
+                        self.background.alphared = 90
+                    else:
+                        self.health -= self.healthdiff
+                        self.background.alphared = 90
                 self.miss += 1
                 self.combo = 0
