@@ -378,11 +378,15 @@ class ProgressBar(object):  # 歌曲进度条
         # self.background = pygame.image.load("src/background.jpg")
 
     def draw(self):
-        bar = pygame.Surface([((self.screen.music_pos/(self.screen.audio.info.length*1000))*self.screen.width), 5])
+        bar = pygame.Surface([
+            ((self.screen.music_pos / (self.screen.audio.info.length * 1000)) *
+             self.screen.width), 5
+        ])
         bar = bar.convert()
         bar.fill((225, 225, 225))
         bar.set_alpha(100)
-        self.screen.scene.blit(self.bar_background, (0, self.screen.height - 5))
+        self.screen.scene.blit(self.bar_background,
+                               (0, self.screen.height - 5))
         self.screen.scene.blit(bar, (0, self.screen.height - 5))
 
 
@@ -443,7 +447,7 @@ class GameBackground(object):
         self.alphablack = 180
         # self.background = pygame.transform.scale(self.background, (self.screen.width, self.screen.height))
         try:
-            self.background = pygame.image.load(img).convert()
+            self.background = img
             self.background = pygame.transform.smoothscale(
                 self.background, (1024, 576))
         except FileNotFoundError:
@@ -501,10 +505,12 @@ class Playground(object):
         self.barrages = pygame.sprite.Group()
         self.lights = pygame.sprite.Group()
         self.barragesGrav = pygame.sprite.Group()
-        self.background = GameBackground(
-            self,
-            os.path.join(self.song_path,
-                         self.beatmap['Events'][0]['Backgroundimg'].strip()))
+        try:
+            backgroundimg = pygame.image.load(os.path.join(self.song_path, self.beatmap['Events'][0]['Backgroundimg'].strip())).convert()
+        except IndexError:
+            backgroundimg = pygame.Surface((1024, 576)).convert()
+            backgroundimg.fill((0, 0, 0))
+        self.background = GameBackground(self, backgroundimg)
         self.healthBar = HealthBar(self)
         self.time = Time(self)
         self.progressbar = ProgressBar(self)
@@ -515,8 +521,9 @@ class Playground(object):
         self.kiai = 0
         self.esc_time = 0
         self.health = 100
-        self.healthdiff = 60 * (
-            ((float(self.beatmap['Difficulty']['h_p_drain_rate']) / 2) + 3) / 10)
+        self.healthdiff = 60 * ((
+            (float(self.beatmap['Difficulty']['h_p_drain_rate']) / 2) + 3) /
+                                10)
         self.points = 0
         self.combo = 0
         self.max_combo = 0
@@ -526,7 +533,8 @@ class Playground(object):
         self.barrage_speed = 1.5 * (
             (float(self.beatmap['Difficulty']['approach_rate']) + 1) / 10)
         self.miss = 0
-        audioPath = os.path.join(song_path, self.beatmap['General']['audio_filename'].strip())
+        audioPath = os.path.join(
+            song_path, self.beatmap['General']['audio_filename'].strip())
         pygame.mixer.music.load(audioPath)
         self.audio = MP3(audioPath)
         pygame.mixer.music.play()
@@ -621,22 +629,22 @@ class Playground(object):
             self.player.speed[1] += gravity
             self.update()
             self.draw()
-            # if pygame.sprite.spritecollide(self.player, self.barrages, True):
-            #     if self.combo > 150:
-            #         self.health -= self.healthdiff * 1.3
-            #         self.background.alphared = 90
-            #     else:
-            #         self.health -= self.healthdiff
-            #         self.background.alphared = 90
-            #     self.miss += 1
-            #     self.combo = 0
-            # if pygame.sprite.spritecollide(self.player, self.barragesGrav,
-            #                                True):
-            #     if self.combo > 150:
-            #         self.health -= self.healthdiff * 1.3
-            #         self.background.alphared = 90
-            #     else:
-            #         self.health -= self.healthdiff
-            #         self.background.alphared = 90
-            #     self.miss += 1
-            #     self.combo = 0
+            if pygame.sprite.spritecollide(self.player, self.barrages, True):
+                if self.combo > 150:
+                    self.health -= self.healthdiff * 1.3
+                    self.background.alphared = 90
+                else:
+                    self.health -= self.healthdiff
+                    self.background.alphared = 90
+                self.miss += 1
+                self.combo = 0
+            if pygame.sprite.spritecollide(self.player, self.barragesGrav,
+                                           True):
+                if self.combo > 150:
+                    self.health -= self.healthdiff * 1.3
+                    self.background.alphared = 90
+                else:
+                    self.health -= self.healthdiff
+                    self.background.alphared = 90
+                self.miss += 1
+                self.combo = 0

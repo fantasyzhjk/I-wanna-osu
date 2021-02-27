@@ -93,12 +93,16 @@ class Menu:
     def setDiff(self):
         self.beatmap_diff = self.beatmap[self.song_diff + 1]
         try:
-            img_file = os.path.join(
-                self.song_path,
-                self.beatmap_diff['Events'][0]['Backgroundimg'].strip())
-            backgroundimg = pygame.image.load(img_file).convert()
-            backgroundimg = pygame.transform.smoothscale(
-                backgroundimg, (1024, 576))
+            try:
+                img_file = os.path.join(
+                    self.song_path,
+                    self.beatmap_diff['Events'][0]['Backgroundimg'].strip())
+                backgroundimg = pygame.image.load(img_file).convert()
+                backgroundimg = pygame.transform.smoothscale(
+                    backgroundimg, (1024, 576))
+            except IndexError:
+                backgroundimg = pygame.Surface((1024, 576)).convert()
+                backgroundimg.fill((0, 0, 0))
             self.background.background = backgroundimg
             version = "(" + self.beatmap_diff['Metadata'][
                 'version'] + ') - Press Space to Start'
