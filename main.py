@@ -11,7 +11,7 @@ class Main(object):
     def __init__(self):
         pygame.init()
         pygame.display.set_caption('I wanna osu')
-        pygame.mixer.music.set_volume(Settings.volume)
+        pygame.mixer.music.set_volume(Settings.volume * Settings.music_volume)
         icon = pygame.image.load('./src/player.png')
         pygame.display.set_icon(icon)  # 可以填img
         size = (self.width, self.height) = (Settings.window_width,
@@ -47,7 +47,7 @@ class Main(object):
                     if event.type == pygame.QUIT:
                         sys.exit()
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                        if self.main.noFail is True:
+                        if self.noFail is True:
                             pygame.display.set_caption('I wanna osu')
                         else:
                             pygame.display.set_caption('[NOFAIL] I wanna osu')

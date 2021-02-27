@@ -49,7 +49,7 @@ class GenerateBarrages:
                             self.ctiming['sample_set'])] + '-hitnormal.wav'
                     music = pygame.mixer.Sound(soundFile)
                     music.set_volume((int(self.ctiming['volume']) / 100) *
-                                     Settings.volume * 0.5)
+                                     Settings.volume * Settings.note_volume)
                     music.play()
                     if cbeat['time'] == self.ctiming['time']:
                         hitsound = int(cbeat['hitsound'])
@@ -69,7 +69,7 @@ class GenerateBarrages:
                             music = pygame.mixer.Sound(soundFile)
                             music.set_volume(
                                 (int(self.ctiming['volume']) / 100) *
-                                Settings.volume * 0.5)
+                                Settings.volume * Settings.note_volume)
                             music.play()
                         if hitsound - 4 >= 0:
                             hitsound -= 4
@@ -87,7 +87,7 @@ class GenerateBarrages:
                             music = pygame.mixer.Sound(soundFile)
                             music.set_volume(
                                 (int(self.ctiming['volume']) / 100) *
-                                Settings.volume * 0.5)
+                                Settings.volume * Settings.note_volume)
                             music.play()
                         if hitsound - 2 >= 0:
                             hitsound -= 2
@@ -105,7 +105,7 @@ class GenerateBarrages:
                             music = pygame.mixer.Sound(soundFile)
                             music.set_volume(
                                 (int(self.ctiming['volume']) / 100) *
-                                Settings.volume * 0.5)
+                                Settings.volume * Settings.note_volume)
                             music.play()
                 except AttributeError:
                     pass
@@ -506,12 +506,16 @@ class Playground(object):
         self.lights = pygame.sprite.Group()
         self.barragesGrav = pygame.sprite.Group()
         try:
-            backgroundimg = pygame.image.load(os.path.join(self.song_path, self.beatmap['Events'][0]['Backgroundimg'].strip())).convert()
+            backgroundimg = pygame.image.load(
+                os.path.join(
+                    self.song_path, self.beatmap['Events'][0]
+                    ['Backgroundimg'].strip())).convert()
         except IndexError:
             backgroundimg = pygame.Surface((1024, 576)).convert()
             backgroundimg.fill((0, 0, 0))
         self.background = GameBackground(self, backgroundimg)
-        self.healthBar = HealthBar(self)
+        if self.main.noFail is not True:
+            self.healthBar = HealthBar(self)
         self.time = Time(self)
         self.progressbar = ProgressBar(self)
         self.score = Score(self)
@@ -550,7 +554,8 @@ class Playground(object):
         self.combot.draw()
         self.time.draw()
         self.progressbar.draw()
-        self.healthBar.draw(self.health)
+        if self.main.noFail is not True:
+            self.healthBar.draw(self.health)
         pygame.display.update()
 
     def update(self):
@@ -639,7 +644,8 @@ class Playground(object):
                         self.background.alphared = 90
                 self.miss += 1
                 self.combo = 0
-            if pygame.sprite.spritecollide(self.player, self.barragesGrav, True):
+            if pygame.sprite.spritecollide(self.player, self.barragesGrav,
+                                           True):
                 if self.main.noFail is not True:
                     if self.combo > 150:
                         self.health -= self.healthdiff * 1.3
