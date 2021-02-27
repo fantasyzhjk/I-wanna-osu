@@ -27,7 +27,8 @@ class LoadingScreen:
         self.background = Background(self)
         self.clock = pygame.time.Clock()
         self.myFont = pygame.font.Font(Settings.font, 45)
-        self.SurfaceFont = self.myFont.render("Loading....", True, Colours.white)
+        self.SurfaceFont = self.myFont.render("Loading....", True,
+                                              Colours.white)
 
     def draw(self):
         self.scene.blit(self.SurfaceFont, (30, 15))
@@ -101,7 +102,8 @@ class Menu:
             self.background.background = backgroundimg
             version = "(" + self.beatmap_diff['Metadata'][
                 'version'] + ') - Press Space to Start'
-            self.SurfaceFont2 = self.otherFont.render(version, True, Colours.white)
+            self.SurfaceFont2 = self.otherFont.render(version, True,
+                                                      Colours.white)
         except KeyError:
             self.song_diff += 1
             self.setDiff()

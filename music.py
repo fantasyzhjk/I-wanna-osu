@@ -6,9 +6,7 @@ import beapmap_reader
 dic = r'C:\Users\Administrator\Desktop\osu\Songs\beatmap-637499191593362925-audio/'
 getindex = {1: 'normal', 2: 'soft', 3: 'drum'}
 
-beatmap = beapmap_reader.parse(
-    dic + 'a_hisa -  (OwopwqowO) [213].osu'
-)
+beatmap = beapmap_reader.parse(dic + 'a_hisa -  (OwopwqowO) [213].osu')
 timing = 0
 beat = 0
 # 标识是否退出循环
@@ -60,11 +58,13 @@ while not exitFlag:
         while music_pos > float(beatmap['HitObjects'][beat]['time']):
             clock.tick(FPS)
             cbeat = beatmap['HitObjects'][beat]
-            soundFile = dic + getindex[int(ctiming['sample_set'])] + '-hitnormal.wav'
+            soundFile = dic + getindex[int(
+                ctiming['sample_set'])] + '-hitnormal.wav'
             if not os.path.isfile(soundFile):
-                soundFile = './src/sounds/' + getindex[int(ctiming['sample_set'])] + '-hitnormal.wav'
+                soundFile = './src/sounds/' + getindex[int(
+                    ctiming['sample_set'])] + '-hitnormal.wav'
             music = pygame.mixer.Sound(soundFile)
-            music.set_volume((int(ctiming['volume'])/100)*0.5*0.7)
+            music.set_volume((int(ctiming['volume']) / 100) * 0.5 * 0.7)
             music.play()
             if cbeat['time'] == ctiming['time']:
                 hitsound = int(cbeat['hitsound'])
@@ -73,33 +73,45 @@ while not exitFlag:
                     sampleIndex = ctiming['sample_index']
                     if sampleIndex == '0' or sampleIndex == '1':
                         sampleIndex = ''
-                    soundFile = dic + getindex[int(ctiming['sample_set'])] + '-hit' + 'clap' + sampleIndex + '.wav'
+                    soundFile = dic + getindex[int(
+                        ctiming['sample_set']
+                    )] + '-hit' + 'clap' + sampleIndex + '.wav'
                     if not os.path.isfile(soundFile):
-                        soundFile = './src/sounds/' + getindex[int(ctiming['sample_set'])] + '-hitclap.wav'
+                        soundFile = './src/sounds/' + getindex[int(
+                            ctiming['sample_set'])] + '-hitclap.wav'
                     music = pygame.mixer.Sound(soundFile)
-                    music.set_volume((int(ctiming['volume'])/100)*0.5*0.7)
+                    music.set_volume(
+                        (int(ctiming['volume']) / 100) * 0.5 * 0.7)
                     music.play()
                 if hitsound - 4 >= 0:
                     hitsound -= 4
                     sampleIndex = ctiming['sample_index']
                     if sampleIndex == '0' or sampleIndex == '1':
                         sampleIndex = ''
-                    soundFile = dic + getindex[int(ctiming['sample_set'])] + '-hitfinish' + sampleIndex + '.wav'
+                    soundFile = dic + getindex[int(
+                        ctiming['sample_set']
+                    )] + '-hitfinish' + sampleIndex + '.wav'
                     if not os.path.isfile(soundFile):
-                        soundFile = './src/sounds/' + getindex[int(ctiming['sample_set'])] + '-hitfinish.wav'
+                        soundFile = './src/sounds/' + getindex[int(
+                            ctiming['sample_set'])] + '-hitfinish.wav'
                     music = pygame.mixer.Sound(soundFile)
-                    music.set_volume((int(ctiming['volume'])/100)*0.5*0.7)
+                    music.set_volume(
+                        (int(ctiming['volume']) / 100) * 0.5 * 0.7)
                     music.play()
                 if hitsound - 2 >= 0:
                     hitsound -= 2
                     sampleIndex = ctiming['sample_index']
                     if sampleIndex == '0' or sampleIndex == '1':
                         sampleIndex = ''
-                    soundFile = dic + getindex[int(ctiming['sample_set'])] + '-hit' + 'whistle' + sampleIndex + '.wav'
+                    soundFile = dic + getindex[int(
+                        ctiming['sample_set']
+                    )] + '-hit' + 'whistle' + sampleIndex + '.wav'
                     if not os.path.isfile(soundFile):
-                        soundFile = './src/sounds/' + getindex[int(ctiming['sample_set'])] + '-hitwhistle.wav'
+                        soundFile = './src/sounds/' + getindex[int(
+                            ctiming['sample_set'])] + '-hitwhistle.wav'
                     music = pygame.mixer.Sound(soundFile)
-                    music.set_volume((int(ctiming['volume'])/100)*0.5*0.7)
+                    music.set_volume(
+                        (int(ctiming['volume']) / 100) * 0.5 * 0.7)
                     music.play()
             beat += 1
     except IndexError:

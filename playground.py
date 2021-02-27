@@ -1,6 +1,7 @@
 import sys
 import os
 import pygame
+from mutagen.mp3 import MP3
 from config import Settings
 
 delta = {
@@ -20,28 +21,35 @@ def clip(val, min_val, max_val):
 class GenerateBarrages:
     def __init__(self, screen):
         self.screen = screen
+        # print(self.screen.beatmap['HitObjects'])
 
     def update(self):
-        self.screen.music_pos = pygame.mixer.music.get_pos()
         if self.screen.timing < len(self.screen.beatmap['TimingPoints']):
-            if self.screen.music_pos > float(
+            if self.screen.music_pos + Settings.offset > float(
                     self.screen.beatmap['TimingPoints'][
                         self.screen.timing]['time']):
                 self.ctiming = self.screen.beatmap['TimingPoints'][
                     self.screen.timing]
                 self.screen.kiai = int(self.ctiming['effects'])
                 self.screen.timing += 1
-            try:
-                while self.screen.music_pos > float(
-                        self.screen.beatmap['HitObjects'][
-                            self.screen.beat]['time']):
-                    cbeat = self.screen.beatmap['HitObjects'][self.screen.beat]
-                    # print(cbeat)
-                    soundFile = os.path.join(self.screen.song_path, getindex[int(self.ctiming['sample_set'])] + '-hitnormal.wav')
+        try:
+            while self.screen.music_pos + Settings.offset > float(
+                    self.screen.beatmap['HitObjects'][
+                        self.screen.beat]['time']):
+                cbeat = self.screen.beatmap['HitObjects'][self.screen.beat]
+                # print(cbeat)
+                # print(self.ctiming)
+                try:
+                    soundFile = os.path.join(
+                        self.screen.song_path,
+                        getindex[int(self.ctiming['sample_set'])] +
+                        '-hitnormal.wav')
                     if not os.path.isfile(soundFile):
-                        soundFile = './src/sounds/' + getindex[int(self.ctiming['sample_set'])] + '-hitnormal.wav'
+                        soundFile = './src/sounds/' + getindex[int(
+                            self.ctiming['sample_set'])] + '-hitnormal.wav'
                     music = pygame.mixer.Sound(soundFile)
-                    music.set_volume((int(self.ctiming['volume'])/100)*Settings.volume*0.5)
+                    music.set_volume((int(self.ctiming['volume']) / 100) *
+                                     Settings.volume * 0.5)
                     music.play()
                     if cbeat['time'] == self.ctiming['time']:
                         hitsound = int(cbeat['hitsound'])
@@ -50,58 +58,81 @@ class GenerateBarrages:
                             sampleIndex = self.ctiming['sample_index']
                             if sampleIndex == '0' or sampleIndex == '1':
                                 sampleIndex = ''
-                            soundFile = os.path.join(self.screen.song_path, getindex[int(self.ctiming['sample_set'])] + '-hit' + 'clap' + sampleIndex + '.wav')
+                            soundFile = os.path.join(
+                                self.screen.song_path,
+                                getindex[int(self.ctiming['sample_set'])] +
+                                '-hit' + 'clap' + sampleIndex + '.wav')
                             if not os.path.isfile(soundFile):
-                                soundFile = './src/sounds/' + getindex[int(self.ctiming['sample_set'])] + '-hitclap.wav'
+                                soundFile = './src/sounds/' + getindex[int(
+                                    self.ctiming['sample_set']
+                                )] + '-hitclap.wav'
                             music = pygame.mixer.Sound(soundFile)
-                            music.set_volume((int(self.ctiming['volume'])/100)*Settings.volume*0.5)
+                            music.set_volume(
+                                (int(self.ctiming['volume']) / 100) *
+                                Settings.volume * 0.5)
                             music.play()
                         if hitsound - 4 >= 0:
                             hitsound -= 4
                             sampleIndex = self.ctiming['sample_index']
                             if sampleIndex == '0' or sampleIndex == '1':
                                 sampleIndex = ''
-                            soundFile = os.path.join(self.screen.song_path, getindex[int(self.ctiming['sample_set'])] + '-hitfinish' + sampleIndex + '.wav')
+                            soundFile = os.path.join(
+                                self.screen.song_path,
+                                getindex[int(self.ctiming['sample_set'])] +
+                                '-hitfinish' + sampleIndex + '.wav')
                             if not os.path.isfile(soundFile):
-                                soundFile = './src/sounds/' + getindex[int(self.ctiming['sample_set'])] + '-hitfinish.wav'
+                                soundFile = './src/sounds/' + getindex[int(
+                                    self.ctiming['sample_set']
+                                )] + '-hitfinish.wav'
                             music = pygame.mixer.Sound(soundFile)
-                            music.set_volume((int(self.ctiming['volume'])/100)*Settings.volume*0.5)
+                            music.set_volume(
+                                (int(self.ctiming['volume']) / 100) *
+                                Settings.volume * 0.5)
                             music.play()
                         if hitsound - 2 >= 0:
                             hitsound -= 2
                             sampleIndex = self.ctiming['sample_index']
                             if sampleIndex == '0' or sampleIndex == '1':
                                 sampleIndex = ''
-                            soundFile = os.path.join(self.screen.song_path, getindex[int(self.ctiming['sample_set'])] + '-hit' + 'whistle' + sampleIndex + '.wav')
+                            soundFile = os.path.join(
+                                self.screen.song_path,
+                                getindex[int(self.ctiming['sample_set'])] +
+                                '-hit' + 'whistle' + sampleIndex + '.wav')
                             if not os.path.isfile(soundFile):
-                                soundFile = './src/sounds/' + getindex[int(self.ctiming['sample_set'])] + '-hitwhistle.wav'
+                                soundFile = './src/sounds/' + getindex[int(
+                                    self.ctiming['sample_set']
+                                )] + '-hitwhistle.wav'
                             music = pygame.mixer.Sound(soundFile)
-                            music.set_volume((int(self.ctiming['volume'])/100)*Settings.volume*0.5)
+                            music.set_volume(
+                                (int(self.ctiming['volume']) / 100) *
+                                Settings.volume * 0.5)
                             music.play()
-                    self.screen.beat += 1
-                    if int(cbeat['type']) == 6:
-                        self.generateSquare1(x=int(cbeat['x']) * 2,
-                                             y=int(cbeat['y']) * 1.3)
-                    elif int(cbeat['type']) == 5:
-                        self.generateSquare(x=int(cbeat['x']) * 2,
-                                            y=int(cbeat['y']) * 1.3)
-                    elif int(cbeat['type']) == 2:
-                        if self.screen.kiai == 1:
-                            self.genLight(x=int(cbeat['x']) * 2,
-                                          y=int(cbeat['y']) * 1.3)
-                        self.generateSquare2(x=int(cbeat['x']) * 2,
-                                             y=int(cbeat['y']) * 1.3)
-                    elif int(cbeat['type']) > 10:
-                        self.generateSquare1(x=int(cbeat['x']) * 2,
-                                             y=int(cbeat['y']) * 1.3)
-                    else:
-                        if self.screen.kiai == 1:
-                            self.genLight(x=int(cbeat['x']) * 2,
-                                          y=int(cbeat['y']) * 1.3)
-                        self.generateBarrage(x=int(cbeat['x']) * 2,
-                                             y=int(cbeat['y']) * 1.3)
-            except IndexError:
-                pass
+                except AttributeError:
+                    pass
+                self.screen.beat += 1
+                if int(cbeat['type']) == 6:
+                    self.generateSquare1(x=int(cbeat['x']) * 2,
+                                         y=int(cbeat['y']) * 1.3)
+                elif int(cbeat['type']) == 5:
+                    self.generateSquare(x=int(cbeat['x']) * 2,
+                                        y=int(cbeat['y']) * 1.3)
+                elif int(cbeat['type']) == 2:
+                    if self.screen.kiai == 1:
+                        self.genLight(x=int(cbeat['x']) * 2,
+                                      y=int(cbeat['y']) * 1.3)
+                    self.generateSquare2(x=int(cbeat['x']) * 2,
+                                         y=int(cbeat['y']) * 1.3)
+                elif int(cbeat['type']) > 10:
+                    self.generateSquare1(x=int(cbeat['x']) * 2,
+                                         y=int(cbeat['y']) * 1.3)
+                else:
+                    if self.screen.kiai == 1:
+                        self.genLight(x=int(cbeat['x']) * 2,
+                                      y=int(cbeat['y']) * 1.3)
+                    self.generateBarrage(x=int(cbeat['x']) * 2,
+                                         y=int(cbeat['y']) * 1.3)
+        except IndexError:
+            pass
 
         if self.screen.kiai == 1:
             self.set_background_alpha(120)
@@ -337,6 +368,24 @@ class HealthBar(object):
         self.screen.scene.blit(bar, (10, 10))
 
 
+class ProgressBar(object):  # 歌曲进度条
+    def __init__(self, screen):
+        self.screen = screen
+        self.max_w = 300
+        self.bar_background = pygame.Surface([self.screen.width, 5]).convert()
+        self.bar_background.fill((100, 100, 100))
+        self.bar_background.set_alpha(100)
+        # self.background = pygame.image.load("src/background.jpg")
+
+    def draw(self):
+        bar = pygame.Surface([((self.screen.music_pos/(self.screen.audio.info.length*1000))*self.screen.width), 5])
+        bar = bar.convert()
+        bar.fill((225, 225, 225))
+        bar.set_alpha(100)
+        self.screen.scene.blit(self.bar_background, (0, self.screen.height - 5))
+        self.screen.scene.blit(bar, (0, self.screen.height - 5))
+
+
 class Score(object):
     def __init__(self, screen):
         self.screen = screen
@@ -359,10 +408,7 @@ class Combo(object):
         # self.background = pygame.image.load("src/background.jpg")
 
     def draw(self):
-        if self.combo < self.screen.combo:
-            self.combo = self.screen.combo
-        elif self.combo > 1 and self.combo > self.screen.combo:
-            self.combo -= 1
+        self.combo = self.screen.combo
         combo_text = self.Font.render(
             str(self.combo) + 'x', True, (255, 255, 255))
         self.screen.scene.blit(combo_text, (10, self.screen.height - 80))
@@ -461,6 +507,7 @@ class Playground(object):
                          self.beatmap['Events'][0]['Backgroundimg'].strip()))
         self.healthBar = HealthBar(self)
         self.time = Time(self)
+        self.progressbar = ProgressBar(self)
         self.score = Score(self)
         self.combot = Combo(self)
         self.beat = 0
@@ -469,7 +516,7 @@ class Playground(object):
         self.esc_time = 0
         self.health = 100
         self.healthdiff = 60 * (
-            (float(self.beatmap['Difficulty']['h_p_drain_rate']) + 1) / 10)
+            ((float(self.beatmap['Difficulty']['h_p_drain_rate']) / 2) + 3) / 10)
         self.points = 0
         self.combo = 0
         self.max_combo = 0
@@ -479,9 +526,9 @@ class Playground(object):
         self.barrage_speed = 1.5 * (
             (float(self.beatmap['Difficulty']['approach_rate']) + 1) / 10)
         self.miss = 0
-        pygame.mixer.music.load(
-            os.path.join(song_path,
-                         self.beatmap['General']['audio_filename'].strip()))
+        audioPath = os.path.join(song_path, self.beatmap['General']['audio_filename'].strip())
+        pygame.mixer.music.load(audioPath)
+        self.audio = MP3(audioPath)
         pygame.mixer.music.play()
         self.music_pos = pygame.mixer.music.get_pos()
 
@@ -494,6 +541,7 @@ class Playground(object):
         self.score.draw()
         self.combot.draw()
         self.time.draw()
+        self.progressbar.draw()
         self.healthBar.draw(self.health)
         pygame.display.update()
 
@@ -509,6 +557,7 @@ class Playground(object):
         if True:
             self.music_pos = pygame.mixer.music.get_pos()
             # print(self.music_pos)
+            # print(self.beat, len(self.beatmap['HitObjects']))
             if self.combo > self.max_combo:
                 self.max_combo = self.combo
             if self.combo > 30 and self.health < 100:
@@ -516,8 +565,8 @@ class Playground(object):
             if self.health <= 0:
                 self.main.game_end = True
             if len(self.barrages) == 0 and len(
-                    self.barragesGrav) == 0 and self.beat == (
-                        len(self.beatmap['HitObjects']) - 1):
+                    self.barragesGrav) == 0 and self.beat == len(
+                        self.beatmap['HitObjects']):
                 self.main.stat = 1
                 if self.music_pos == -1:
                     self.main.game_end = True
@@ -573,21 +622,21 @@ class Playground(object):
             self.update()
             self.draw()
             # if pygame.sprite.spritecollide(self.player, self.barrages, True):
-            #     if self.combo > 100:
+            #     if self.combo > 150:
             #         self.health -= self.healthdiff * 1.3
             #         self.background.alphared = 90
             #     else:
             #         self.health -= self.healthdiff
-            #         self.background.alphared = 120
+            #         self.background.alphared = 90
             #     self.miss += 1
             #     self.combo = 0
             # if pygame.sprite.spritecollide(self.player, self.barragesGrav,
             #                                True):
-            #     if self.combo > 100:
+            #     if self.combo > 150:
             #         self.health -= self.healthdiff * 1.3
             #         self.background.alphared = 90
             #     else:
             #         self.health -= self.healthdiff
-            #         self.background.alphared = 120
+            #         self.background.alphared = 90
             #     self.miss += 1
             #     self.combo = 0

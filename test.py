@@ -19,4 +19,3 @@ for bti in bm['TimingPoints']:
 # 1 Normal
 # 2 Soft
 # 3 Drum
-print(2-8)
