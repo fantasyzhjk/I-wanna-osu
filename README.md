@@ -1,2 +1,2 @@
 # I-wanna-osu
-i wanna osu
+A game written in python
