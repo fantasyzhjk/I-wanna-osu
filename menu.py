@@ -1,6 +1,8 @@
 import os
-import pygame
 import sys
+
+import pygame
+
 from config import Settings, Colours
 
 
@@ -104,13 +106,17 @@ class Menu:
                 backgroundimg = pygame.Surface((1024, 576)).convert()
                 backgroundimg.fill((0, 0, 0))
             self.background.background = backgroundimg
-            version = "(" + self.beatmap_diff['Metadata'][
-                'version'] + ') - Press Space to Start'
-            self.SurfaceFont2 = self.otherFont.render(version, True,
+            version = self.beatmap_diff['Metadata']['version']
+            self.SurfaceFont2 = self.otherFont.render("(" + str(version) + ') - Press Space to Start', True,
                                                       Colours.white)
         except KeyError:
             self.song_diff += 1
             self.setDiff()
+        except TypeError as e:
+            print(e)
+            print(self.all_beatmaps[self.song])
+            del self.all_beatmaps[self.song]
+            self.setSong()
         except FileNotFoundError:
             backgroundback = pygame.Surface(self.scene.get_size()).convert()
             backgroundback.fill((0, 0, 0))
@@ -141,13 +147,17 @@ class Menu:
                 if event.key == pygame.K_LEFT:
                     if self.song > 0:
                         self.song -= 1
-                        self.song_diff = 0
-                        self.setSong()
+                    else:
+                        self.song = len(self.all_beatmaps) - 1
+                    self.song_diff = 0
+                    self.setSong()
                 if event.key == pygame.K_RIGHT:
                     if self.song < len(self.all_beatmaps) - 1:
                         self.song += 1
-                        self.song_diff = 0
-                        self.setSong()
+                    else:
+                        self.song = 0
+                    self.song_diff = 0
+                    self.setSong()
                 if event.key == pygame.K_DOWN:
                     if self.song_diff < len(self.beatmap) - 2:
                         self.song_diff += 1

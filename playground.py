@@ -1,12 +1,15 @@
-import sys
 import os
+import sys
+
 import pygame
 from mutagen.mp3 import MP3
+
 from config import Settings
 
 delta = {
     pygame.K_UP: (0, -16),
     pygame.K_SPACE: (0, -16),
+    pygame.K_w: (0, -16),
 }
 
 getindex = {1: 'normal', 2: 'soft', 3: 'drum'}
@@ -25,20 +28,20 @@ class GenerateBarrages:
 
     def update(self):
         if self.screen.timing < len(self.screen.beatmap['TimingPoints']):
-            if self.screen.music_pos + Settings.offset > float(
+            if (self.screen.music_pos + Settings.offset) > float(
                     self.screen.beatmap['TimingPoints'][
                         self.screen.timing]['time']):
                 self.ctiming = self.screen.beatmap['TimingPoints'][
                     self.screen.timing]
+                # print(self.ctiming)
                 self.screen.kiai = int(self.ctiming['effects'])
                 self.screen.timing += 1
         try:
-            while self.screen.music_pos + Settings.offset > float(
+            while (self.screen.music_pos + Settings.offset) > float(
                     self.screen.beatmap['HitObjects'][
                         self.screen.beat]['time']):
                 cbeat = self.screen.beatmap['HitObjects'][self.screen.beat]
                 # print(cbeat)
-                # print(self.ctiming)
                 try:
                     soundFile = os.path.join(
                         self.screen.song_path,
@@ -446,14 +449,8 @@ class GameBackground(object):
         self.alphared = 0
         self.alphablack = 180
         # self.background = pygame.transform.scale(self.background, (self.screen.width, self.screen.height))
-        try:
-            self.background = img
-            self.background = pygame.transform.smoothscale(
-                self.background, (1024, 576))
-        except FileNotFoundError:
-            self.background = pygame.Surface(
-                self.screen.scene.get_size()).convert()
-            self.background.fill((0, 0, 0))
+        self.background = img
+        self.background = pygame.transform.smoothscale(self.background, (1024, 576))
         self.backgroundback = pygame.Surface(
             self.screen.scene.get_size()).convert()
         self.backgroundback.fill((0, 0, 0))
@@ -510,7 +507,7 @@ class Playground(object):
                 os.path.join(
                     self.song_path, self.beatmap['Events'][0]
                     ['Backgroundimg'].strip())).convert()
-        except IndexError:
+        except Exception:
             backgroundimg = pygame.Surface((1024, 576)).convert()
             backgroundimg.fill((0, 0, 0))
         self.background = GameBackground(self, backgroundimg)
@@ -610,16 +607,16 @@ class Playground(object):
                     self.main.stat = 2
             else:
                 self.esc_time = 0
-            if key_down[pygame.K_DOWN]:
+            if key_down[pygame.K_DOWN] or key_down[pygame.K_s]:
                 self.player.speed[1] += 0.5
-            if key_down[pygame.K_RIGHT]:
+            if key_down[pygame.K_RIGHT] or key_down[pygame.K_d]:
                 if self.player.direction == 1:
                     self.player.flipPlayer()
                 if key_down[pygame.K_LSHIFT]:
                     self.player.speed[0] += 1
                 else:
                     self.player.speed[0] += 0.6
-            if key_down[pygame.K_LEFT]:
+            if key_down[pygame.K_LEFT] or key_down[pygame.K_a]:
                 if self.player.direction == 0:
                     self.player.flipPlayer()
                 if key_down[pygame.K_LSHIFT]:

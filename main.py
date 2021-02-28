@@ -1,9 +1,11 @@
-import pygame
-import playground as pg
-import beapmap_reader
-import menu
 import sys
 from threading import Thread
+
+import pygame
+
+import beapmap_reader
+import menu
+import playground as pg
 from config import Settings
 
 
@@ -47,7 +49,7 @@ class Main(object):
                     if event.type == pygame.QUIT:
                         sys.exit()
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                        if self.noFail is True:
+                        if self.noFail is not True:
                             pygame.display.set_caption('I wanna osu')
                         else:
                             pygame.display.set_caption('[NOFAIL] I wanna osu')
@@ -94,6 +96,10 @@ class Main(object):
                     pygame.display.update()
                 elif self.stat == 2:
                     pygame.mixer.music.fadeout(200)
+                    if self.noFail is not True:
+                        pygame.display.set_caption('I wanna osu')
+                    else:
+                        pygame.display.set_caption('[NOFAIL] I wanna osu')
                     self.game_end = False
                     self.intro = True
                     self.stat = 0
