@@ -1,5 +1,5 @@
 class Settings:
-    clock_tick = 90
+    clock_tick = 120
     window_width = 1024
     window_height = 768
     volume = 0.7
@@ -7,7 +7,7 @@ class Settings:
     note_volume = 0.5  # default 0.5
     offset = -20
     font = './src/JetBrainsMono-Regular.ttf'
-    songs_path = r'E:\Games\osu\Songs'
+    songs_path = r'E:\osu\Songs'
     # songs_path = './Songs'
 
 

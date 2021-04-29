@@ -1,7 +1,8 @@
 import os
 import sys
-
+import beapmap_reader
 import pygame
+import time
 
 from config import Settings, Colours
 
@@ -19,6 +20,21 @@ class Background(object):
     def draw(self):
         self.screen.scene.blit(self.backgroundback, (0, 0))
         self.screen.scene.blit(self.background, (0, 96))
+
+
+class BlackScreen(object):
+    def __init__(self, screen):
+        self.screen = screen
+        self.alpha = 255
+        self.backgroundred = pygame.Surface(
+            self.screen.scene.get_size()).convert()
+        self.backgroundred.fill((0, 0, 0))
+
+    def update(self):
+        self.backgroundred.set_alpha(self.alpha)
+
+    def draw(self):
+        self.screen.scene.blit(self.backgroundred, (0, 0))
 
 
 class LoadingScreen:
@@ -43,15 +59,20 @@ class LoadingScreen:
 
 
 class Menu:
-    def __init__(self, main, all_beatmaps):
+    def __init__(self, main):
         (self.width, self.height) = (main.width, main.height)
         self.main = main
         self.scene = main.scene
         self.beatmap = []
         self.beatmap_diff = {}
         self.song_path = ''
-        self.all_beatmaps = all_beatmaps
+        self.gameStart = False # 是否开始游戏
+        self.osu_songs = os.listdir(Settings.songs_path)
+        self.all_beatmaps = []
         self.background = Background(self)
+        self.blackScreen = BlackScreen(self)
+        self.selState = 0
+        self.selPressTime = {pygame.K_RIGHT:0,pygame.K_LEFT:0}
         self.song = 0
         self.song_diff = 0
         self.myFont = pygame.font.Font(Settings.font, 45)
@@ -64,33 +85,54 @@ class Menu:
         self.SurfaceFont_Y = 15
         version = 'You have no Beatmaps'
         self.SurfaceFont2 = self.otherFont.render(version, True, Colours.white)
-        if self.all_beatmaps:
+        if self.osu_songs:       # 预加载铺面
             self.setSong()
 
+    def load_beatmap(self):
+        print("正在读取 {}".format(self.osu_songs[self.song]))
+        path = os.path.join(Settings.songs_path, self.osu_songs[self.song])
+        try:
+            self.beatmap = beapmap_reader.getSong(path)
+        except Exception as e:
+            print(e)
+            del self.osu_songs[self.song]
+
     def setSong(self):
-        self.beatmap = self.all_beatmaps[self.song]
-        self.song_path = self.beatmap[0]['song_path']
-        self.setDiff()
-        pygame.mixer.music.load(
-            os.path.join(
-                self.song_path,
-                self.beatmap_diff['General']['audio_filename'].strip()))
-        pygame.mixer.music.play()
-        title = self.beatmap_diff['Metadata'][
-            'artist'] + ' - ' + self.beatmap_diff['Metadata']['title']
-        if 42 >= len(title) > 36:
-            self.myFont = pygame.font.Font(Settings.font, 38)
-            self.SurfaceFont_Y = 20
-        elif 55 >= len(title) > 42:
-            self.myFont = pygame.font.Font(Settings.font, 31)
-            self.SurfaceFont_Y = 25
-        elif len(title) > 55:
-            self.myFont = pygame.font.Font(Settings.font, 24)
-            self.SurfaceFont_Y = 30
-        else:
-            self.myFont = pygame.font.Font(Settings.font, 45)
-            self.SurfaceFont_Y = 15
-        self.SurfaceFont = self.myFont.render(title, True, Colours.white)
+        if not self.osu_songs:
+            return
+        self.load_beatmap()
+        if self.beatmap == []:
+            print("{} 读取失败".format(self.osu_songs[self.song]))
+            del self.osu_songs[self.song]
+            self.load_beatmap()
+        try:
+            self.song_path = self.beatmap[0]['song_path']
+            self.setDiff()
+            pygame.mixer.music.load(
+                os.path.join(
+                    self.song_path,
+                    self.beatmap_diff['General']['audio_filename'].strip()))
+            pygame.mixer.music.play()
+            title = self.beatmap_diff['Metadata'][
+                'artist'] + ' - ' + self.beatmap_diff['Metadata']['title']
+            if 42 >= len(title) > 36:
+                self.myFont = pygame.font.Font(Settings.font, 38)
+                self.SurfaceFont_Y = 20
+            elif 55 >= len(title) > 42:
+                self.myFont = pygame.font.Font(Settings.font, 31)
+                self.SurfaceFont_Y = 25
+            elif len(title) > 55:
+                self.myFont = pygame.font.Font(Settings.font, 24)
+                self.SurfaceFont_Y = 30
+            else:
+                self.myFont = pygame.font.Font(Settings.font, 45)
+                self.SurfaceFont_Y = 15
+            self.SurfaceFont = self.myFont.render(title, True, Colours.white)
+        except pygame.error as e:
+            print(e)
+            print(self.osu_songs[self.song])
+            del self.osu_songs[self.song]
+            self.setSong()
 
     def setDiff(self):
         self.beatmap_diff = self.beatmap[self.song_diff + 1]
@@ -114,8 +156,8 @@ class Menu:
             self.setDiff()
         except TypeError as e:
             print(e)
-            print(self.all_beatmaps[self.song])
-            del self.all_beatmaps[self.song]
+            print(self.osu_songs[self.song])
+            del self.osu_songs[self.song]
             self.setSong()
         except FileNotFoundError:
             backgroundback = pygame.Surface(self.scene.get_size()).convert()
@@ -123,51 +165,90 @@ class Menu:
             self.background.background = backgroundback
 
     def draw(self):
+        self.background.draw()
         self.scene.blit(self.SurfaceFont2, (30, self.height - 65))
         self.scene.blit(self.SurfaceFont, (30, self.SurfaceFont_Y))
         self.scene.blit(self.up_text, (self.width - 80, self.height - 75))
         self.scene.blit(self.down_text, (self.width - 80, self.height - 55))
+        self.blackScreen.draw()
         pygame.display.flip()
-        self.background.draw()
 
     def run(self):
-        for event in pygame.event.get():
-            if (event.type
-                    == pygame.QUIT) or (event.type == pygame.KEYDOWN
-                                        and event.key == pygame.K_ESCAPE):
-                sys.exit()
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
-                if self.main.noFail is True:
-                    self.main.noFail = False
-                    pygame.display.set_caption('I wanna osu')
-                else:
-                    self.main.noFail = True
-                    pygame.display.set_caption('[NOFAIL] I wanna osu')
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
+        if not self.gameStart:
+            if self.blackScreen.alpha > 0:
+                self.blackScreen.alpha -= 5
+                self.blackScreen.update()
+            for event in pygame.event.get():
+                if (event.type
+                        == pygame.QUIT) or (event.type == pygame.KEYDOWN
+                                            and event.key == pygame.K_ESCAPE):
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
+                    if self.main.noFail is True:
+                        self.main.noFail = False
+                        pygame.display.set_caption('I wanna osu')
+                    else:
+                        self.main.noFail = True
+                        pygame.display.set_caption('[NOFAIL] I wanna osu')
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        if self.song > 0:
+                            self.song -= 1
+                        else:
+                            self.song = len(self.osu_songs) - 1
+                        self.song_diff = 0
+                        self.setSong()
+                    if event.key == pygame.K_RIGHT:
+                        if self.song < len(self.osu_songs) - 1:
+                            self.song += 1
+                        else:
+                            self.song = 0
+                        self.song_diff = 0
+                        self.setSong()
+                    if event.key == pygame.K_DOWN:
+                        if self.beatmap != []:
+                            if self.song_diff < len(self.beatmap) - 2:
+                                self.song_diff += 1
+                                self.setDiff()
+                    if event.key == pygame.K_UP:
+                        if self.song_diff > 0:
+                            self.song_diff -= 1
+                            self.setDiff()
+
+                    if event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
+                        # self.main.intro = False
+                        self.gameStart = True
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_LEFT:
+                        self.selPressTime[pygame.K_LEFT] = 0
+                    if event.key == pygame.K_RIGHT:
+                        self.selPressTime[pygame.K_RIGHT] = 0
+            
+            key_down = pygame.key.get_pressed()
+            if key_down[pygame.K_LEFT]:
+                if self.selPressTime[pygame.K_LEFT] > 32:
                     if self.song > 0:
                         self.song -= 1
                     else:
-                        self.song = len(self.all_beatmaps) - 1
+                        self.song = len(self.osu_songs) - 1
                     self.song_diff = 0
                     self.setSong()
-                if event.key == pygame.K_RIGHT:
-                    if self.song < len(self.all_beatmaps) - 1:
+                self.selPressTime[pygame.K_LEFT] += 1
+            if key_down[pygame.K_RIGHT]:
+                if self.selPressTime[pygame.K_RIGHT] > 32:
+                    if self.song < len(self.osu_songs) - 1:
                         self.song += 1
                     else:
                         self.song = 0
                     self.song_diff = 0
                     self.setSong()
-                if event.key == pygame.K_DOWN:
-                    if self.song_diff < len(self.beatmap) - 2:
-                        self.song_diff += 1
-                        self.setDiff()
-                if event.key == pygame.K_UP:
-                    if self.song_diff > 0:
-                        self.song_diff -= 1
-                        self.setDiff()
-
-                if event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
-                    self.main.intro = False
-
-        self.draw()
+                self.selPressTime[pygame.K_RIGHT] += 1
+            self.draw()
+        else:
+            if self.blackScreen.alpha >= 30:
+                self.main.intro = False
+            else:
+                self.blackScreen.alpha += 1
+            self.blackScreen.update()
+            self.blackScreen.draw()
+            pygame.display.flip()

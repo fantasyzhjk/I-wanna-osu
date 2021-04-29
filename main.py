@@ -3,9 +3,8 @@ from threading import Thread
 
 import pygame
 
-import beapmap_reader
 import menu
-import playground as pg
+import gameplay as pg
 from config import Settings
 
 
@@ -27,15 +26,18 @@ class Main(object):
         self.stat = 0
         self.noFail = False
         # 加载铺面
-        self.loadingScreen = menu.LoadingScreen(self)
-        loadingS = Thread(target=self.loadingScreen.run)
-        loadingS.setDaemon(True)  # 必须在t.start()之前设置
-        loadingS.start()
-        all_beatmaps = beapmap_reader.getSongs(Settings.songs_path)
-        loadingS.join()
-        self.menu = menu.Menu(self, all_beatmaps)
+        # self.loadingScreen = menu.LoadingScreen(self)
+        # loadingS = Thread(target=self.loadingScreen.run)
+        # loadingS.setDaemon(True)  # 必须在t.start()之前设置
+        # loadingS.start()
+        
+        # all_beatmaps = beapmap_reader.getSongs(Settings.songs_path)
+        # loadingS.join()
+        self.menu = menu.Menu(self)
 
     def loop(self):
+        self.menu.blackScreen.alpha = 255
+        self.menu.gameStart = False
         while self.intro:
             self.menu.run()
             self.clock.tick(self.clock_tick)
@@ -75,7 +77,7 @@ class Main(object):
                     self.scene.blit(faildtext, (50, 50))
                     self.scene.blit(max_combo, (130, 130))
                     self.scene.blit(faildtext1, (150, 180))
-                    pygame.display.update()
+                    pygame.display.flip()
                 elif self.stat == 1:
                     wintext = myFont.render(
                         "You Win! Score:" + str(self.playground.points), True,
@@ -93,7 +95,7 @@ class Main(object):
                     self.scene.blit(wintext, (50, 50))
                     self.scene.blit(max_combo, (130, 130))
                     self.scene.blit(wintext1, (150, 180))
-                    pygame.display.update()
+                    pygame.display.flip()
                 elif self.stat == 2:
                     pygame.mixer.music.fadeout(200)
                     if self.noFail is not True:
@@ -106,16 +108,22 @@ class Main(object):
                     self.loop()
                 self.clock.tick(self.clock_tick)
             else:
-                self.start_game()
+                try:
+                    self.start_game()
+                except Exception as e:
+                    print(e)
+                    self.intro = True
+                    if self.noFail is not True:
+                        pygame.display.set_caption('I wanna osu')
+                    else:
+                        pygame.display.set_caption('[NOFAIL] I wanna osu')
+                    self.loop()
 
     def start_game(self):
-        song = self.menu.beatmap_diff
-        song_path = self.menu.song_path
-        self.playground = pg.Playground(self, song, song_path)
+        self.playground = pg.Playground(self, self.menu.beatmap_diff, self.menu.song_path)
         while not self.game_end:
             self.playground.run()
             self.clock.tick(self.clock_tick)
-
         # pygame.time.wait(15)
 
 

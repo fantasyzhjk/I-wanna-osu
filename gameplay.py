@@ -1,20 +1,20 @@
 import os
 import sys
-
 import pygame
-from mutagen.mp3 import MP3
+# from mutagen.mp3 import MP3       # 取消进度条模块
 
+from gameplay_ui import *
 from config import Settings
 
 delta = {
-    pygame.K_UP: (0, -16),
-    pygame.K_SPACE: (0, -16),
-    pygame.K_w: (0, -16),
+    pygame.K_UP: (0, -12),
+    pygame.K_SPACE: (0, -12),
+    pygame.K_w: (0, -12),
 }
 
 getindex = {1: 'normal', 2: 'soft', 3: 'drum'}
 
-gravity = +1
+gravity = +0.6
 
 
 def clip(val, min_val, max_val):
@@ -339,7 +339,7 @@ class Player(pygame.sprite.Sprite):
             self.speed[0] = 0
         if -0.1 < self.speed[0] < 0:
             self.speed[0] = 0
-        if self.speed[1] == 0:
+        if self.speed[1] == 0 or self.speed[1] == gravity:
             self.onGround = True
         else:
             self.onGround = False
@@ -354,125 +354,6 @@ class Player(pygame.sprite.Sprite):
         self.screen.scene.blit(self.image, self.rect)
 
 
-class HealthBar(object):
-    def __init__(self, screen):
-        self.screen = screen
-        self.max_w = 300
-        self.bar_background = pygame.Surface([310, 30]).convert()
-        self.bar_background.fill((255, 255, 255))
-        self.bar_background.set_alpha(200)
-        # self.background = pygame.image.load("src/background.jpg")
-
-    def draw(self, w):
-        bar = pygame.Surface([max(min(w * 3, self.max_w), 0), 20])
-        bar = bar.convert()
-        bar.fill((240, 0, 0))
-        self.screen.scene.blit(self.bar_background, (5, 5))
-        self.screen.scene.blit(bar, (10, 10))
-
-
-class ProgressBar(object):  # 歌曲进度条
-    def __init__(self, screen):
-        self.screen = screen
-        self.max_w = 300
-        self.bar_background = pygame.Surface([self.screen.width, 5]).convert()
-        self.bar_background.fill((100, 100, 100))
-        self.bar_background.set_alpha(100)
-        # self.background = pygame.image.load("src/background.jpg")
-
-    def draw(self):
-        bar = pygame.Surface([
-            ((self.screen.music_pos / (self.screen.audio.info.length * 1000)) *
-             self.screen.width), 5
-        ])
-        bar = bar.convert()
-        bar.fill((225, 225, 225))
-        bar.set_alpha(100)
-        self.screen.scene.blit(self.bar_background,
-                               (0, self.screen.height - 5))
-        self.screen.scene.blit(bar, (0, self.screen.height - 5))
-
-
-class Score(object):
-    def __init__(self, screen):
-        self.screen = screen
-        self.Font = pygame.font.Font(Settings.font, 60)
-        # self.background = pygame.image.load("src/background.jpg")
-
-    def draw(self):
-        score = self.Font.render(str(format(self.screen.points, '0>8d')), True,
-                                 (255, 255, 255))
-        score_rect = score.get_rect()
-        self.screen.scene.blit(
-            score, (self.screen.width - score_rect.right - 20, -10))
-
-
-class Combo(object):
-    def __init__(self, screen):
-        self.screen = screen
-        self.combo = 0
-        self.Font = pygame.font.Font(Settings.font, 60)
-        # self.background = pygame.image.load("src/background.jpg")
-
-    def draw(self):
-        self.combo = self.screen.combo
-        combo_text = self.Font.render(
-            str(self.combo) + 'x', True, (255, 255, 255))
-        self.screen.scene.blit(combo_text, (10, self.screen.height - 80))
-
-
-class Time(object):
-    def __init__(self, screen):
-        self.screen = screen
-        self.Font = pygame.font.Font(Settings.font, 30)
-        # self.background = pygame.image.load("src/background.jpg")
-
-    def draw(self):
-        # time_delta = pygame.time.get_ticks() - self.screen.start_time
-        mts = str(format(int(self.screen.music_pos / 60000), '0>2d'))
-        sec = str(format(int(self.screen.music_pos / 1000 % 60), '0>2d'))
-        ml = str(format(int(self.screen.music_pos % 1000), '0>2d'))[0:2]
-        if mts != '00':
-            time = self.Font.render(mts + ":" + sec + ":" + ml, True,
-                                    (255, 255, 255))
-        else:
-            time = self.Font.render(sec + ":" + ml, True, (255, 255, 255))
-
-        time_rect = time.get_rect()
-        self.screen.scene.blit(time,
-                               (self.screen.width - time_rect.right - 20, 50))
-
-
-class GameBackground(object):
-    def __init__(self, screen, img):
-        self.screen = screen
-        self.alphared = 0
-        self.alphablack = 180
-        # self.background = pygame.transform.scale(self.background, (self.screen.width, self.screen.height))
-        self.background = img
-        self.background = pygame.transform.smoothscale(self.background, (1024, 576))
-        self.backgroundback = pygame.Surface(
-            self.screen.scene.get_size()).convert()
-        self.backgroundback.fill((0, 0, 0))
-        self.backgroundback.set_alpha(180)
-        self.backgroundred = pygame.Surface(
-            self.screen.scene.get_size()).convert()
-        self.backgroundred.fill((240, 0, 0))
-
-    def update(self):
-        self.backgroundred.set_alpha(self.alphared)
-        if self.alphared >= 0:
-            self.alphared -= 5
-        self.backgroundback.set_alpha(self.alphablack)
-        if self.alphablack <= 175:
-            self.alphablack += 1
-
-    def draw(self):
-        self.screen.scene.blit(self.background, (0, 96))
-        self.screen.scene.blit(self.backgroundback, (0, 0))
-        self.screen.scene.blit(self.backgroundred, (0, 0))
-
-
 class Playground(object):
     def __init__(self, main, song, song_path):
         self.main = main
@@ -480,6 +361,8 @@ class Playground(object):
         self.scene = main.scene
         self.song_path = song_path
         self.beatmap = song
+
+        # 铺面参数初始化
         title = 'unknown'
         if 'artist_unicode' in self.beatmap[
                 'Metadata'] and 'title_unicode' in self.beatmap['Metadata']:
@@ -496,12 +379,6 @@ class Playground(object):
             pygame.image.load('./src/lighting.png').convert_alpha(), 'RGBA')
         self.barrage_image = pygame.transform.scale(
             pygame.image.load('./src/bullet.png').convert_alpha(), (24, 24))
-        # self.start_time = pygame.time.get_ticks()
-        self.player = Player(self)
-        self.gb = GenerateBarrages(self)
-        self.barrages = pygame.sprite.Group()
-        self.lights = pygame.sprite.Group()
-        self.barragesGrav = pygame.sprite.Group()
         try:
             backgroundimg = pygame.image.load(
                 os.path.join(
@@ -510,34 +387,47 @@ class Playground(object):
         except Exception:
             backgroundimg = pygame.Surface((1024, 576)).convert()
             backgroundimg.fill((0, 0, 0))
-        self.background = GameBackground(self, backgroundimg)
-        if self.main.noFail is not True:
-            self.healthBar = HealthBar(self)
-        self.time = Time(self)
-        self.progressbar = ProgressBar(self)
-        self.score = Score(self)
-        self.combot = Combo(self)
         self.beat = 0
         self.timing = 0
         self.kiai = 0
         self.esc_time = 0
         self.health = 100
         self.healthdiff = 60 * ((
-            (float(self.beatmap['Difficulty']['h_p_drain_rate']) / 2) + 3) /
-                                10)
+            (float(self.beatmap['Difficulty']['h_p_drain_rate']) / 2) + 3) / 10)
         self.points = 0
         self.combo = 0
         self.max_combo = 0
-        self.frame_time = 0
         self.jump_state = 2
         self.friction = 1
-        self.barrage_speed = 1.5 * (
+        self.barrage_speed = 1.2 * (
             (float(self.beatmap['Difficulty']['approach_rate']) + 1) / 10)
         self.miss = 0
+        self.godModeTime = 0        # miss后受伤无敌时间
+        self.gameEnd = 0
+
+        # 游戏数据初始化
+        self.player = Player(self)
+        self.gb = GenerateBarrages(self)
+        self.barrages = pygame.sprite.Group()
+        self.lights = pygame.sprite.Group()
+        self.barragesGrav = pygame.sprite.Group()
+
+        # UI初始化
+        self.background = GameBackground(self, backgroundimg)
+        self.redScreen = RedScreen(self)
+        self.blackScreen = BlackScreen(self)
+        self.time = Time(self)
+        self.score = Score(self)
+        self.combot = Combo(self)
+        # self.progressbar = ProgressBar(self)
+        if self.main.noFail is not True:
+            self.healthBar = HealthBar(self)
+
+        # 播放音频开始游戏
         audioPath = os.path.join(
             song_path, self.beatmap['General']['audio_filename'].strip())
         pygame.mixer.music.load(audioPath)
-        self.audio = MP3(audioPath)
+        # self.audio = MP3(audioPath)
         pygame.mixer.music.play()
         self.music_pos = pygame.mixer.music.get_pos()
 
@@ -550,10 +440,13 @@ class Playground(object):
         self.score.draw()
         self.combot.draw()
         self.time.draw()
-        self.progressbar.draw()
+        # self.progressbar.draw()   # 取消进度条
         if self.main.noFail is not True:
             self.healthBar.draw(self.health)
-        pygame.display.update()
+        # 最后显示红色蒙版
+        self.redScreen.draw()
+        self.blackScreen.draw()
+        pygame.display.flip()
 
     def update(self):
         self.gb.update()
@@ -562,10 +455,14 @@ class Playground(object):
         self.barrages.update()
         self.lights.update()
         self.background.update()
+        self.redScreen.update()
 
     def run(self):
-        if True:
+        if not self.gameEnd:
             self.music_pos = pygame.mixer.music.get_pos()
+            if self.blackScreen.alpha > 0:
+                self.blackScreen.alpha -= 8
+                self.blackScreen.update()
             # print(self.music_pos)
             # print(self.beat, len(self.beatmap['HitObjects']))
             if self.combo > self.max_combo:
@@ -573,14 +470,15 @@ class Playground(object):
             if self.combo > 30 and self.health < 100:
                 self.health += 0.2
             if self.health <= 0:
-                self.main.game_end = True
+                self.gameEnd = True
+                # self.main.game_end = True
             if len(self.barrages) == 0 and len(
                     self.barragesGrav) == 0 and self.beat == len(
                         self.beatmap['HitObjects']):
                 self.main.stat = 1
                 if self.music_pos == -1:
-                    self.main.game_end = True
-            self.frame_time += 1
+                    self.gameEnd = True
+                    # self.main.game_end = True
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
@@ -599,11 +497,13 @@ class Playground(object):
 
             if key_down[pygame.K_ESCAPE]:
                 if self.main.stat == 1:
-                    self.main.game_end = True
+                    self.gameEnd = True
+                    # self.main.game_end = True
                 self.esc_time += 1
-                self.background.alphared += 7
+                self.redScreen.alphared += 7
                 if self.esc_time > 60:
-                    self.main.game_end = True
+                    self.gameEnd = True
+                    # self.main.game_end = True
                     self.main.stat = 2
             else:
                 self.esc_time = 0
@@ -613,42 +513,60 @@ class Playground(object):
                 if self.player.direction == 1:
                     self.player.flipPlayer()
                 if key_down[pygame.K_LSHIFT]:
-                    self.player.speed[0] += 1
+                    self.player.speed[0] += 0.8
                 else:
-                    self.player.speed[0] += 0.6
+                    self.player.speed[0] += 0.5
             if key_down[pygame.K_LEFT] or key_down[pygame.K_a]:
                 if self.player.direction == 0:
                     self.player.flipPlayer()
                 if key_down[pygame.K_LSHIFT]:
-                    self.player.speed[0] -= 1
+                    self.player.speed[0] -= 0.8
                 else:
-                    self.player.speed[0] -= 0.6
+                    self.player.speed[0] -= 0.5
             self.player.speed = [self.friction * s for s in self.player.speed]
             for barrage in self.barragesGrav.sprites():
-                barrage.speed = [0.97 * s for s in barrage.speed]
-                barrage.speed[1] += 0.3  # 解除弹幕速度限制
+                barrage.speed = [0.98 * s for s in barrage.speed]
+                barrage.speed[1] += 0.2  # 解除弹幕速度限制
 
             self.player.speed[1] += gravity
-            self.update()
-            self.draw()
+
+            # 碰撞检测
             if pygame.sprite.spritecollide(self.player, self.barrages, True):
                 if self.main.noFail is not True:
-                    if self.combo > 150:
-                        self.health -= self.healthdiff * 1.3
-                        self.background.alphared = 90
-                    else:
-                        self.health -= self.healthdiff
-                        self.background.alphared = 90
+                    if self.godModeTime == 0:
+                        self.godModeTime = 24
+                        if self.combo > 150:
+                            self.health -= self.healthdiff * 1.3
+                            self.redScreen.alphared = 120
+                        else:
+                            self.health -= self.healthdiff
+                            self.redScreen.alphared = 120
                 self.miss += 1
                 self.combo = 0
             if pygame.sprite.spritecollide(self.player, self.barragesGrav,
                                            True):
                 if self.main.noFail is not True:
-                    if self.combo > 150:
-                        self.health -= self.healthdiff * 1.3
-                        self.background.alphared = 90
-                    else:
-                        self.health -= self.healthdiff
-                        self.background.alphared = 90
+                    if self.godModeTime == 0:
+                        self.godModeTime = 24
+                        if self.combo > 150:
+                            self.health -= self.healthdiff * 1.3
+                            self.redScreen.alphared = 90
+                        else:
+                            self.health -= self.healthdiff
+                            self.redScreen.alphared = 90
                 self.miss += 1
                 self.combo = 0
+
+            if self.godModeTime > 0:
+                self.godModeTime -= 1
+                
+            self.update()
+            self.draw()
+        else:
+            if self.blackScreen.alpha >= 50:
+                self.main.game_end = True
+            else:
+                self.blackScreen.alpha += 1
+            self.blackScreen.update()
+            self.blackScreen.draw()
+            pygame.display.flip()

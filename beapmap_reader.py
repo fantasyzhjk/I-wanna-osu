@@ -37,6 +37,22 @@ def getSongs(songs_path):
     return all_beatmaps
 
 
+def getSong(path):
+    diffs = []
+    diffs.append({'song_path': path})
+    if os.path.isdir(path):
+        for file in os.listdir(path):
+            if file.endswith(".osu"):
+                song = file
+                song_path = os.path.join(path, file)
+                songInfo = parse(song_path)
+                if songInfo:
+                    diffs.append(songInfo)
+    if len(diffs) == 1:
+        return []
+    return diffs
+
+
 # 单文件解析
 def parse(osu_beatmap_path: str):
     try:
@@ -53,7 +69,8 @@ def parse(osu_beatmap_path: str):
                 line = line.strip('\n')
                 parse_line(line, current_sector, beatmap_dict)
         return beatmap_dict
-    except Exception:
+    except Exception as e:
+        raise(e)
         return None
 
 
