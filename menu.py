@@ -80,13 +80,11 @@ class Menu:
         self.smallFont = pygame.font.Font(Settings.font, 20)
         self.up_text = self.otherFont.render("△", True, Colours.white)
         self.down_text = self.otherFont.render("▽", True, Colours.white)
-        title = 'I wanna osu'
+        title = 'SafetyIsland'
         self.SurfaceFont = self.myFont.render(title, True, Colours.white)
         self.SurfaceFont_Y = 15
         version = 'You have no Beatmaps'
         self.SurfaceFont2 = self.otherFont.render(version, True, Colours.white)
-        if self.osu_songs:       # 预加载铺面
-            self.setSong()
 
     def load_beatmap(self):
         print("正在读取 {}".format(self.osu_songs[self.song]))
@@ -186,10 +184,10 @@ class Menu:
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
                     if self.main.noFail is True:
                         self.main.noFail = False
-                        pygame.display.set_caption('I wanna osu')
+                        pygame.display.set_caption('SafetyIsland')
                     else:
                         self.main.noFail = True
-                        pygame.display.set_caption('[NOFAIL] I wanna osu')
+                        pygame.display.set_caption('[NOFAIL] SafetyIsland')
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LEFT:
                         if self.song > 0:
@@ -246,7 +244,7 @@ class Menu:
             self.draw()
         else:
             if self.blackScreen.alpha >= 30:
-                self.main.intro = False
+                self.main.isMenu = False
             else:
                 self.blackScreen.alpha += 1
             self.blackScreen.update()

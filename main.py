@@ -5,13 +5,67 @@ import pygame
 
 import menu
 import gameplay as pg
-from config import Settings
+from config import Settings, Colours
+from player import *
 
+delta = {
+    pygame.K_UP: (0, -12),
+    pygame.K_SPACE: (0, -12),
+    pygame.K_w: (0, -12),
+}
+
+class Background(object):
+    def __init__(self, screen):
+        self.screen = screen
+        self.backgroundback = pygame.Surface(
+            self.screen.scene.get_size()).convert()
+        self.backgroundback.fill((0, 0, 0))
+
+    def draw(self):
+        self.screen.scene.blit(self.backgroundback, (0, 0))
+
+class Intro:
+    def __init__(self, main):
+        (self.width, self.height) = (main.width, main.height)
+        self.main = main
+        self.scene = main.scene
+        self.background = Background(self)
+        self.player = Player(self)
+        self.clock = pygame.time.Clock()
+        self.myFont = pygame.font.Font(Settings.font, 45)
+        self.myFont2 = pygame.font.Font(Settings.font, 25)
+        self.SurfaceFont = self.myFont.render("SafetyIsland", True,
+                                              Colours.white)
+        self.SurfaceFont2 = self.myFont2.render("Press ENTER or SPACE to continue", True,
+                                              Colours.white)
+
+    def draw(self):
+        self.background.draw()
+        self.scene.blit(self.SurfaceFont, (350, 320))
+        self.scene.blit(self.SurfaceFont2, (270, 380))
+        self.player.draw()
+        pygame.display.flip()
+
+    def run(self):
+        for event in pygame.event.get():
+            if (event.type == pygame.QUIT) or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
+                    self.main.isIntro = False
+                deltax, deltay = delta.get(event.key, (0, 0))
+                self.player.speed[1] = deltay
+                self.player.friction = 1
+            elif event.type == pygame.KEYUP:
+                self.player.friction = 0.99
+        self.player.move()
+        self.player.update()
+        self.draw()
 
 class Main(object):
     def __init__(self):
         pygame.init()
-        pygame.display.set_caption('I wanna osu')
+        pygame.display.set_caption('SafetyIsland')
         pygame.mixer.music.set_volume(Settings.volume * Settings.music_volume)
         icon = pygame.image.load('./src/player.png')
         pygame.display.set_icon(icon)  # 可以填img
@@ -21,7 +75,8 @@ class Main(object):
             size, pygame.HWSURFACE | pygame.DOUBLEBUF)
         self.clock = pygame.time.Clock()
         self.clock_tick = Settings.clock_tick
-        self.intro = True
+        self.isIntro = True
+        self.isMenu = True
         self.game_end = False
         self.stat = 0
         self.noFail = False
@@ -38,7 +93,14 @@ class Main(object):
     def loop(self):
         self.menu.blackScreen.alpha = 255
         self.menu.gameStart = False
-        while self.intro:
+        intro = Intro(self)
+        while self.isIntro:
+            intro.run()
+            self.clock.tick(self.clock_tick)
+            pass
+        if self.menu.osu_songs:       # 预加载铺面
+            self.menu.setSong()
+        while self.isMenu:
             self.menu.run()
             self.clock.tick(self.clock_tick)
             pass
@@ -52,11 +114,11 @@ class Main(object):
                         sys.exit()
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                         if self.noFail is not True:
-                            pygame.display.set_caption('I wanna osu')
+                            pygame.display.set_caption('SafetyIsland')
                         else:
-                            pygame.display.set_caption('[NOFAIL] I wanna osu')
+                            pygame.display.set_caption('[NOFAIL] SafetyIsland')
                         self.game_end = False
-                        self.intro = True
+                        self.isMenu = True
                         self.stat = 0
                         self.loop()
                 if self.stat == 0:
@@ -99,11 +161,11 @@ class Main(object):
                 elif self.stat == 2:
                     pygame.mixer.music.fadeout(200)
                     if self.noFail is not True:
-                        pygame.display.set_caption('I wanna osu')
+                        pygame.display.set_caption('SafetyIsland')
                     else:
-                        pygame.display.set_caption('[NOFAIL] I wanna osu')
+                        pygame.display.set_caption('[NOFAIL] SafetyIsland')
                     self.game_end = False
-                    self.intro = True
+                    self.isMenu = True
                     self.stat = 0
                     self.loop()
                 self.clock.tick(self.clock_tick)
@@ -112,11 +174,11 @@ class Main(object):
                     self.start_game()
                 except Exception as e:
                     print(e)
-                    self.intro = True
+                    self.isMenu = True
                     if self.noFail is not True:
-                        pygame.display.set_caption('I wanna osu')
+                        pygame.display.set_caption('SafetyIsland')
                     else:
-                        pygame.display.set_caption('[NOFAIL] I wanna osu')
+                        pygame.display.set_caption('[NOFAIL] SafetyIsland')
                     self.loop()
 
     def start_game(self):
