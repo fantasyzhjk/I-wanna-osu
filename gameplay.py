@@ -1,7 +1,7 @@
 import os
 import sys
 import pygame
-# from mutagen.mp3 import MP3       # 取消进度条模块
+import mutagen
 
 from gameplay_ui import *
 from player import *
@@ -364,7 +364,7 @@ class Playground(object):
         self.time = Time(self)
         self.score = Score(self)
         self.combot = Combo(self)
-        # self.progressbar = ProgressBar(self)
+        self.progressbar = ProgressBar(self)
         if self.main.noFail is not True:
             self.healthBar = HealthBar(self)
 
@@ -372,7 +372,7 @@ class Playground(object):
         audioPath = os.path.join(
             song_path, self.beatmap['General']['audio_filename'].strip())
         pygame.mixer.music.load(audioPath)
-        # self.audio = MP3(audioPath)
+        self.audio = mutagen.File(audioPath)
         pygame.mixer.music.play()
         self.music_pos = pygame.mixer.music.get_pos()
 
@@ -385,7 +385,7 @@ class Playground(object):
         self.score.draw()
         self.combot.draw()
         self.time.draw()
-        # self.progressbar.draw()   # 取消进度条
+        self.progressbar.draw()
         if self.main.noFail is not True:
             self.healthBar.draw(self.health)
         # 最后显示红色蒙版
