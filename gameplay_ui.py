@@ -1,7 +1,8 @@
-import os
-import sys
+# import os
+# import sys
 import pygame
 from config import Settings
+
 
 class HealthBar(object):
     def __init__(self, screen):
@@ -20,6 +21,17 @@ class HealthBar(object):
         self.screen.scene.blit(bar, (10, 10))
 
 
+class Frames(object):
+    def __init__(self, screen):
+        self.screen = screen
+        self.Font = pygame.font.Font(Settings.font, 20)
+
+    def draw(self):
+        score = self.Font.render(str(int(self.screen.main.fps)), True, (255, 255, 255))
+        score_rect = score.get_rect()
+        self.screen.scene.blit(score, (self.screen.width - score_rect.right - 10, self.screen.height - 35))
+
+
 class ProgressBar(object):  # 歌曲进度条
     def __init__(self, screen):
         self.screen = screen
@@ -30,15 +42,11 @@ class ProgressBar(object):  # 歌曲进度条
         # self.background = pygame.image.load("src/background.jpg")
 
     def draw(self):
-        bar = pygame.Surface([
-            ((self.screen.music_pos / (self.screen.audio.info.length * 1000)) *
-             self.screen.width), 5
-        ])
+        bar = pygame.Surface([((self.screen.music_pos / (self.screen.audio.info.length * 1000)) * self.screen.width), 5])
         bar = bar.convert()
         bar.fill((225, 225, 225))
         bar.set_alpha(100)
-        self.screen.scene.blit(self.bar_background,
-                               (0, self.screen.height - 5))
+        self.screen.scene.blit(self.bar_background, (0, self.screen.height - 5))
         self.screen.scene.blit(bar, (0, self.screen.height - 5))
 
 
@@ -49,11 +57,9 @@ class Score(object):
         # self.background = pygame.image.load("src/background.jpg")
 
     def draw(self):
-        score = self.Font.render(str(format(self.screen.points, '0>8d')), True,
-                                 (255, 255, 255))
+        score = self.Font.render(str(format(self.screen.points, '0>8d')), True, (255, 255, 255))
         score_rect = score.get_rect()
-        self.screen.scene.blit(
-            score, (self.screen.width - score_rect.right - 20, -10))
+        self.screen.scene.blit(score, (self.screen.width - score_rect.right - 20, -10))
 
 
 class Combo(object):
@@ -65,8 +71,7 @@ class Combo(object):
 
     def draw(self):
         self.combo = self.screen.combo
-        combo_text = self.Font.render(
-            str(self.combo) + 'x', True, (255, 255, 255))
+        combo_text = self.Font.render(str(self.combo) + 'x', True, (255, 255, 255))
         self.screen.scene.blit(combo_text, (10, self.screen.height - 80))
 
 
@@ -82,14 +87,12 @@ class Time(object):
         sec = str(format(int(self.screen.music_pos / 1000 % 60), '0>2d'))
         ml = str(format(int(self.screen.music_pos % 1000), '0>2d'))[0:2]
         if mts != '00':
-            time = self.Font.render(mts + ":" + sec + ":" + ml, True,
-                                    (255, 255, 255))
+            time = self.Font.render(mts + ":" + sec + ":" + ml, True, (255, 255, 255))
         else:
             time = self.Font.render(sec + ":" + ml, True, (255, 255, 255))
 
         time_rect = time.get_rect()
-        self.screen.scene.blit(time,
-                               (self.screen.width - time_rect.right - 20, 50))
+        self.screen.scene.blit(time, (self.screen.width - time_rect.right - 20, 50))
 
 
 class GameBackground(object):
@@ -99,8 +102,7 @@ class GameBackground(object):
         # self.background = pygame.transform.scale(self.background, (self.screen.width, self.screen.height))
         self.background = img
         self.background = pygame.transform.smoothscale(self.background, (1024, 576))
-        self.backgroundback = pygame.Surface(
-            self.screen.scene.get_size()).convert()
+        self.backgroundback = pygame.Surface(self.screen.scene.get_size()).convert()
         self.backgroundback.fill((0, 0, 0))
         self.backgroundback.set_alpha(180)
 
@@ -113,12 +115,12 @@ class GameBackground(object):
         self.screen.scene.blit(self.background, (0, 96))
         self.screen.scene.blit(self.backgroundback, (0, 0))
 
+
 class RedScreen(object):
     def __init__(self, screen):
         self.screen = screen
         self.alphared = 0
-        self.backgroundred = pygame.Surface(
-            self.screen.scene.get_size()).convert()
+        self.backgroundred = pygame.Surface(self.screen.scene.get_size()).convert()
         self.backgroundred.fill((240, 0, 0))
 
     def update(self):
@@ -134,8 +136,7 @@ class BlackScreen(object):
     def __init__(self, screen):
         self.screen = screen
         self.alpha = 255
-        self.backgroundred = pygame.Surface(
-            self.screen.scene.get_size()).convert()
+        self.backgroundred = pygame.Surface(self.screen.scene.get_size()).convert()
         self.backgroundred.fill((0, 0, 0))
 
     def update(self):

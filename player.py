@@ -2,8 +2,10 @@ import pygame
 
 gravity = +0.6
 
+
 def clip(val, min_val, max_val):
     return min(max(val, min_val), max_val)
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, screen):
@@ -75,7 +77,5 @@ class Player(pygame.sprite.Sprite):
         self.speed[1] += gravity
         pass
 
-
     def draw(self):
         self.screen.scene.blit(self.image, self.rect)
-

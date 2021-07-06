@@ -2,10 +2,7 @@ import os
 import re
 
 # 铺面参数类型
-SECTION_TYPES = [
-    'General', 'Editor', 'Metadata', 'Difficulty', 'Events', 'TimingPoints',
-    'Colours', 'HitObjects'
-]
+SECTION_TYPES = ['General', 'Editor', 'Metadata', 'Difficulty', 'Events', 'TimingPoints', 'Colours', 'HitObjects']
 
 # 滑条类型
 SLIDER_TYPES = ['C', 'L', 'P', 'B']
@@ -43,7 +40,7 @@ def getSong(path):
     if os.path.isdir(path):
         for file in os.listdir(path):
             if file.endswith(".osu"):
-                song = file
+                # song = file
                 song_path = os.path.join(path, file)
                 songInfo = parse(song_path)
                 if songInfo:
@@ -55,23 +52,19 @@ def getSong(path):
 
 # 单文件解析
 def parse(osu_beatmap_path: str):
-    try:
-        file = open(osu_beatmap_path, 'r+', encoding="utf8").readlines()
-        current_sector = None
-        beatmap_dict = {}
-        for line in file:
-            if line == '' or line == '\n':
-                continue
-            callback = check_for_header(line)
-            if callback is not None:
-                current_sector = callback
-            if current_sector is not None:
-                line = line.strip('\n')
-                parse_line(line, current_sector, beatmap_dict)
-        return beatmap_dict
-    except Exception as e:
-        raise(e)
-        return None
+    file = open(osu_beatmap_path, 'r+', encoding="utf8").readlines()
+    current_sector = None
+    beatmap_dict = {}
+    for line in file:
+        if line == '' or line == '\n':
+            continue
+        callback = check_for_header(line)
+        if callback is not None:
+            current_sector = callback
+        if current_sector is not None:
+            line = line.strip('\n')
+            parse_line(line, current_sector, beatmap_dict)
+    return beatmap_dict
 
 
 def check_for_header(line: str):
@@ -84,13 +77,7 @@ def check_for_header(line: str):
 # 解析铺面
 def parse_hit_objects(line: str, sector: str, beatmap_dict: dict):
     item = line.split(',')
-    point = {
-        'x': item[0],
-        'y': item[1],
-        'time': item[2],
-        'type': item[3],
-        'hitsound': item[4]
-    }
+    point = {'x': item[0], 'y': item[1], 'time': item[2], 'type': item[3], 'hitsound': item[4]}
     if len(item) > 5:
         if not any(curve_type in item[5] for curve_type in SLIDER_TYPES):
             point['extras'] = item[5]
@@ -98,10 +85,7 @@ def parse_hit_objects(line: str, sector: str, beatmap_dict: dict):
             try:
                 ct_cp = item[5].split("|")
                 point['curve_type'] = ct_cp[0]
-                point['curve_points'] = tuple([{
-                    'x': params.split(':')[0],
-                    'y': params.split(':')[1]
-                } for params in ct_cp[1:]])
+                point['curve_points'] = tuple([{'x': params.split(':')[0], 'y': params.split(':')[1]} for params in ct_cp[1:]])
                 point['slides'] = item[6]
                 point['length'] = item[7]
                 point['edge_sounds'] = item[8]
@@ -124,16 +108,7 @@ def parse_events(line: str, sector: str, beatmap_dict: dict):
 # 解析timing结构
 def parse_timing_objects(line: str, sector: str, beatmap_dict: dict):
     item = line.split(',')
-    point = {
-        'time': item[0],
-        'beat_length': item[1],
-        'meter': item[2],
-        'sample_set': item[3],
-        'sample_index': item[4],
-        'volume': item[5],
-        'uninherited': item[6],
-        'effects': item[7]
-    }
+    point = {'time': item[0], 'beat_length': item[1], 'meter': item[2], 'sample_set': item[3], 'sample_index': item[4], 'volume': item[5], 'uninherited': item[6], 'effects': item[7]}
     beatmap_dict[sector].append(point)
 
 
