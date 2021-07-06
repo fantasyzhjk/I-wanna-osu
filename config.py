@@ -7,8 +7,8 @@ class Settings:
     note_volume = 0.5  # default 0.5
     offset = -20
     font = './src/JetBrainsMono-Regular.ttf'
-    songs_path = r'E:\Games\osu\Songs'
-    # songs_path = './Songs'
+    # songs_path = r'E:\Games\osu\Songs'
+    songs_path = './Songs'
 
 
 class Colours:

@@ -34,7 +34,7 @@ class Intro:
         self.clock = pygame.time.Clock()
         self.myFont = pygame.font.Font(Settings.font, 45)
         self.myFont2 = pygame.font.Font(Settings.font, 25)
-        self.SurfaceFont = self.myFont.render("SafetyIsland", True,
+        self.SurfaceFont = self.myFont.render("I wanna osu", True,
                                               Colours.white)
         self.SurfaceFont2 = self.myFont2.render("Press ENTER or SPACE to continue", True,
                                               Colours.white)
@@ -65,7 +65,7 @@ class Intro:
 class Main(object):
     def __init__(self):
         pygame.init()
-        pygame.display.set_caption('SafetyIsland')
+        pygame.display.set_caption('I wanna osu')
         pygame.mixer.music.set_volume(Settings.volume * Settings.music_volume)
         icon = pygame.image.load('./src/player.png')
         pygame.display.set_icon(icon)  # 可以填img
@@ -114,9 +114,9 @@ class Main(object):
                         sys.exit()
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                         if self.noFail is not True:
-                            pygame.display.set_caption('SafetyIsland')
+                            pygame.display.set_caption('I wanna osu')
                         else:
-                            pygame.display.set_caption('[NOFAIL] SafetyIsland')
+                            pygame.display.set_caption('[NOFAIL] I wanna osu')
                         self.game_end = False
                         self.isMenu = True
                         self.stat = 0
@@ -161,9 +161,9 @@ class Main(object):
                 elif self.stat == 2:
                     pygame.mixer.music.fadeout(200)
                     if self.noFail is not True:
-                        pygame.display.set_caption('SafetyIsland')
+                        pygame.display.set_caption('I wanna osu')
                     else:
-                        pygame.display.set_caption('[NOFAIL] SafetyIsland')
+                        pygame.display.set_caption('[NOFAIL] I wanna osu')
                     self.game_end = False
                     self.isMenu = True
                     self.stat = 0
@@ -176,9 +176,9 @@ class Main(object):
                     print(e)
                     self.isMenu = True
                     if self.noFail is not True:
-                        pygame.display.set_caption('SafetyIsland')
+                        pygame.display.set_caption('I wanna osu')
                     else:
-                        pygame.display.set_caption('[NOFAIL] SafetyIsland')
+                        pygame.display.set_caption('[NOFAIL] I wanna osu')
                     self.loop()
 
     def start_game(self):

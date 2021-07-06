@@ -1,2 +1,2 @@
-# I-wanna-osu
+# I-wanna-osu (SafetyIsland)
 A game written in python
